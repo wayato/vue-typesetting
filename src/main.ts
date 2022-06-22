@@ -1,2 +1,1 @@
-export { Block } from './pojo/Block'
-export { Page } from './pojo/Page'
+export { Page } from './lib/Page'

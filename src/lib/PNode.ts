@@ -1,21 +1,34 @@
 import type { Component, AsyncComponent, VNode } from "vue"
 import Vue from 'vue'
 import Utils from "./Utils"
-import VueInstance from "./VueInstance"
+import Store from "./Store"
 
 export class PNode {
 
     // PNode所生成的vue组件
     private vueComponent: Component
 
+    // 拖拽时的图像
+    private dragImg: HTMLElement
 
     constructor(ast: PNodeAST) {
+        this.createDragImg()
         // ast数据中存在component组件名称，则代表是叶子节点
         if (ast.component) {
-            this.vueComponent = this.createLeaf(ast, VueInstance.getComponent(ast.component))
+            this.vueComponent = this.createLeaf(ast, Store.getComponent(ast.component))
         } else {
             this.vueComponent = this.createContainer(ast)
         }
+    }
+
+    // 创建拖动时图像
+    private createDragImg() {
+        const dom: HTMLElement = document.createElement('img')
+        dom.style.height = '100px'
+        dom.style.width = '100px'
+        dom.style.background = 'red'
+        dom.style.width = '100px'
+        this.dragImg = dom
     }
 
     // 创建容器
@@ -38,7 +51,7 @@ export class PNode {
                     }
                 }, ast.children.map((childAst: PNodeAST) => {
                     if (childAst.component) {
-                        return h(_this.createLeaf(childAst, VueInstance.getComponent(childAst.component)), {
+                        return h(_this.createLeaf(childAst, Store.getComponent(childAst.component)), {
                             props: {
                                 updateData: this.updateData
                             },
@@ -74,6 +87,7 @@ export class PNode {
             },
             data: () => {
                 return {
+                    dragSelf: false, // 是否正在拖拽自己
                     tipAreaIndex: -1 // 当前展示提示的阴影区域 0上 1右 2下 3左
                 }
             },
@@ -107,7 +121,9 @@ export class PNode {
                         on: {
                             dragover: (e: DragEvent) => {
                                 Utils.stopBubble(e)
-                                this.tipAreaIndex = index
+                                if (!this.dragSelf) {
+                                    this.tipAreaIndex = index
+                                }
                             },
                             dragleave: (e: DragEvent) => {
                                 Utils.stopBubble(e)
@@ -115,10 +131,9 @@ export class PNode {
                             },
                             drop: (e: DragEvent) => {
                                 Utils.stopBubble(e)
+                                if (this.dragSelf) return
                                 this.tipAreaIndex = -1
-                                const configStr = e.dataTransfer.getData('config')
-                                if (configStr !== '') {
-                                    const config = JSON.parse(configStr)
+                                Utils.getConfig(e).then(res => {
                                     const children = [
                                         {
                                             key: Utils.getUuid(),
@@ -126,7 +141,7 @@ export class PNode {
                                         },
                                         {
                                             key: Utils.getUuid(),
-                                            component: config.component
+                                            component: res.component
                                         }
                                     ]
                                     this.updateData(ast.key, {
@@ -134,7 +149,7 @@ export class PNode {
                                         direction: /left|right/.test(item[0]) ? 'row' : 'column',
                                         children: /bottom|right/.test(item[0]) ? children : children.reverse()
                                     })
-                                }
+                                })
                             }
                         }
                     }))
@@ -155,7 +170,8 @@ export class PNode {
                         const style = {
                             overflow: 'hidden',
                             position: 'relative',
-                            flex: 1
+                            flex: 1,
+                            opacity: this.dragSelf ? 0.5 : 1
                         }
                         if (ast?.layout) {
                             return {
@@ -170,6 +186,14 @@ export class PNode {
                         return style
                     })(),
                     on: {
+                        dragstart: (e: DragEvent) => {
+                            console.log(e)
+                            this.dragSelf = true
+                            Utils.setDragImg(e)
+                        },
+                        dragend: () => {
+                            this.dragSelf = false
+                        },
                         click: (e: Event) => {
                             
                             // this.$emit('blockClick')

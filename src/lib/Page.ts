@@ -1,6 +1,7 @@
 import type { VNode } from 'vue'
 import Vue from 'vue'
 import { PNode } from './PNode'
+import Store from './Store'
 import Utils from './Utils'
 export class Page {
 
@@ -41,9 +42,7 @@ export class Page {
                         },
                         drop: (e: DragEvent) => {
                             Utils.stopBubble(e)
-                            const configStr = e.dataTransfer.getData('config')
-                            if (configStr !== '') {
-                                const config = JSON.parse(configStr)
+                            Utils.getConfig(e).then(res => {
                                 _this.setData([
                                     {
                                         key: Utils.getUuid(),
@@ -51,13 +50,13 @@ export class Page {
                                         children: [
                                             {
                                                 key: Utils.getUuid(),
-                                                component: config.component
+                                                component: res.component
                                             }
                                         ]
                                     }
                                 ])
                                 console.log((JSON.stringify(this.page.dataAST)))
-                            }
+                            })
                         },
                         click: () => {
                             // console.log(this)

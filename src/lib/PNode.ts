@@ -1,6 +1,7 @@
-import type { Component, VNode } from "vue"
+import type { Component, AsyncComponent, VNode } from "vue"
 import Vue from 'vue'
-import { VueComponents } from "./Page"
+import Utils from "./Utils"
+import VueInstance from "./VueInstance"
 
 export class PNode {
 
@@ -8,17 +9,17 @@ export class PNode {
     private vueComponent: Component
 
 
-    constructor(ast: PNodeAST, vueComponents: VueComponents) {
+    constructor(ast: PNodeAST) {
         // ast数据中存在component组件名称，则代表是叶子节点
         if (ast.component) {
-            this.vueComponent = this.createLeaf(ast, <Component>vueComponents[ast.component])
+            this.vueComponent = this.createLeaf(ast, VueInstance.getComponent(ast.component))
         } else {
-            this.vueComponent = this.createContainer(ast, vueComponents)
+            this.vueComponent = this.createContainer(ast)
         }
     }
 
     // 创建容器
-    private createContainer(ast: PNodeAST, vueComponents: VueComponents): Component {
+    private createContainer(ast: PNodeAST): Component {
         // console.log('容器', ast.key)
 
         const _this = this
@@ -37,14 +38,14 @@ export class PNode {
                     }
                 }, ast.children.map((childAst: PNodeAST) => {
                     if (childAst.component) {
-                        return h(_this.createLeaf(childAst, <Component>vueComponents[childAst.component]), {
+                        return h(_this.createLeaf(childAst, VueInstance.getComponent(childAst.component)), {
                             props: {
                                 updateData: this.updateData
                             },
                             key: childAst.key
                         })
                     } else {
-                        return h(_this.createContainer(childAst, vueComponents), {
+                        return h(_this.createContainer(childAst), {
                             props: {
                                 updateData: this.updateData
                             },
@@ -57,7 +58,7 @@ export class PNode {
     }
 
     // 创建叶子节点
-    private createLeaf(ast: PNodeAST, component: Component): Component {
+    private createLeaf(ast: PNodeAST, component: Component<any, any, any, any> | AsyncComponent<any, any, any, any> | string): Component {
         // console.log('叶子', ast.key)
 
         const _this = this
@@ -105,31 +106,31 @@ export class PNode {
                         },
                         on: {
                             dragover: (e: DragEvent) => {
-                                e.preventDefault()
+                                Utils.stopBubble(e)
                                 this.tipAreaIndex = index
                             },
                             dragleave: (e: DragEvent) => {
-                                e.preventDefault()
+                                Utils.stopBubble(e)
                                 this.tipAreaIndex = -1
                             },
                             drop: (e: DragEvent) => {
-                                e.preventDefault()
+                                Utils.stopBubble(e)
                                 this.tipAreaIndex = -1
                                 const configStr = e.dataTransfer.getData('config')
                                 if (configStr !== '') {
                                     const config = JSON.parse(configStr)
                                     const children = [
                                         {
-                                            key: (<any>crypto)?.randomUUID() || Math.random().toString(),
+                                            key: Utils.getUuid(),
                                             component: ast.component
                                         },
                                         {
-                                            key: (<any>crypto)?.randomUUID() || Math.random().toString(),
+                                            key: Utils.getUuid(),
                                             component: config.component
                                         }
                                     ]
                                     this.updateData(ast.key, {
-                                        key: (<any>crypto)?.randomUUID() || Math.random().toString(),
+                                        key: Utils.getUuid(),
                                         direction: /left|right/.test(item[0]) ? 'row' : 'column',
                                         children: /bottom|right/.test(item[0]) ? children : children.reverse()
                                     })

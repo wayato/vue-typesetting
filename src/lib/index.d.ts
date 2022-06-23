@@ -27,7 +27,7 @@ type PNodeAST = {
     data?: any // 需要传入组件的参数
     direction?: Direction // 排列方式 水平row 垂直column
     layout?: any // 组件位置，只有在悬浮排列的情况下才有
-    children: PNodeAST[]
+    children?: PNodeAST[]
 }
 
 type Direction = 'row' | 'column'

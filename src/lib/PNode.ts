@@ -8,27 +8,13 @@ export class PNode {
     // PNode所生成的vue组件
     private vueComponent: Component
 
-    // 拖拽时的图像
-    private dragImg: HTMLElement
-
     constructor(ast: PNodeAST) {
-        this.createDragImg()
         // ast数据中存在component组件名称，则代表是叶子节点
         if (ast.component) {
             this.vueComponent = this.createLeaf(ast, Store.getComponent(ast.component))
         } else {
             this.vueComponent = this.createContainer(ast)
         }
-    }
-
-    // 创建拖动时图像
-    private createDragImg() {
-        const dom: HTMLElement = document.createElement('img')
-        dom.style.height = '100px'
-        dom.style.width = '100px'
-        dom.style.background = 'red'
-        dom.style.width = '100px'
-        this.dragImg = dom
     }
 
     // 创建容器
@@ -38,7 +24,9 @@ export class PNode {
         const _this = this
         return Vue.extend({
             props: {
-                updateData: Function
+                updateData: Function,
+                operateCurrentKey: Function,
+                operateInnerDraging: Function
             },
             render(h): VNode {
                 return h('div', {
@@ -52,16 +40,12 @@ export class PNode {
                 }, ast.children.map((childAst: PNodeAST) => {
                     if (childAst.component) {
                         return h(_this.createLeaf(childAst, Store.getComponent(childAst.component)), {
-                            props: {
-                                updateData: this.updateData
-                            },
+                            props: this.$props,
                             key: childAst.key
                         })
                     } else {
                         return h(_this.createContainer(childAst), {
-                            props: {
-                                updateData: this.updateData
-                            },
+                            props: this.$props,
                             key: childAst.key
                         })
                     }
@@ -77,21 +61,37 @@ export class PNode {
         const _this = this
         return Vue.extend({
             props: {
-                // 是否选中
-                isSelected: {
-                    type: Boolean,
-                    default: false
-                },
-                updateData: Function,
-
+                operateCurrentKey: Function,
+                operateInnerDraging: Function,
+                updateData: Function
             },
             data: () => {
                 return {
                     dragSelf: false, // 是否正在拖拽自己
-                    tipAreaIndex: -1 // 当前展示提示的阴影区域 0上 1右 2下 3左
+                    tipAreaIndex: -1, // 当前展示提示的阴影区域 0上 1右 2下 3左
+                    innerDragingStyleShow: false // 内部移动时是否显示相应样式
+                }
+            },
+            computed: {
+                currentKey: {
+                    get() {
+                        return this.operateCurrentKey()
+                    },
+                    set(val) {
+                        this.operateCurrentKey(val)
+                    }
+                },
+                innerDraging: {
+                    get() {
+                        return this.operateInnerDraging()
+                    },
+                    set(val) {
+                        this.operateInnerDraging(val)
+                    }
                 }
             },
             render(h): VNode {
+                const LINE_COLOR = 'rgba(77, 77, 238, 1)'
                 const AREA_CONFIG: [string, string, string][] = [
                     ['top', '0 0 50% 0', 'polygon(0 0, 50% 100%, 100% 0)'],
                     ['right', '0 0 0 50%', 'polygon(100% 0, 0 50%, 100% 100%)'],
@@ -105,10 +105,11 @@ export class PNode {
                     tipArea.push(h('div', {
                         style: {
                             position: 'absolute',
-                            background: '#000',
+                            background: '#FFF',
                             inset: item[1],
                             transition: 'opacity .3s',
-                            opacity: this.tipAreaIndex === index ? '0.3' : '0'
+                            opacity: this.tipAreaIndex === index ? '0.5' : '0',
+                            border: `2px dashed ${LINE_COLOR}`
                         }
                     }))
                     determineArea.push(h('div', {
@@ -121,12 +122,13 @@ export class PNode {
                         on: {
                             dragover: (e: DragEvent) => {
                                 Utils.stopBubble(e)
-                                if (!this.dragSelf) {
+                                if (!this.innerDraging) {
                                     this.tipAreaIndex = index
+                                } else {
+                                    this.innerDragingStyleShow = true
                                 }
                             },
                             dragleave: (e: DragEvent) => {
-                                Utils.stopBubble(e)
                                 this.tipAreaIndex = -1
                             },
                             drop: (e: DragEvent) => {
@@ -134,21 +136,36 @@ export class PNode {
                                 if (this.dragSelf) return
                                 this.tipAreaIndex = -1
                                 Utils.getConfig(e).then(res => {
-                                    const children = [
-                                        {
+                                    if (res.key) {
+                                        // 有key代表是已经在画布上的元素进行交换
+                                        this.updateData(ast.key, {
+                                            ...res,
+                                            key: Utils.getUuid()
+
+                                        })
+                                        this.updateData(res.key, {
+                                            ...ast,
+                                            key: Utils.getUuid()
+                                        })
+                                    } else {
+                                        // 没有key代表新加入的元素
+                                        const children = [
+                                            {
+                                                key: Utils.getUuid(),
+                                                component: ast.component
+                                            },
+                                            {
+                                                key: Utils.getUuid(),
+                                                component: res.component
+                                            }
+                                        ]
+                                        this.updateData(ast.key, {
                                             key: Utils.getUuid(),
-                                            component: ast.component
-                                        },
-                                        {
-                                            key: Utils.getUuid(),
-                                            component: res.component
-                                        }
-                                    ]
-                                    this.updateData(ast.key, {
-                                        key: Utils.getUuid(),
-                                        direction: /left|right/.test(item[0]) ? 'row' : 'column',
-                                        children: /bottom|right/.test(item[0]) ? children : children.reverse()
-                                    })
+                                            direction: /left|right/.test(item[0]) ? 'row' : 'column',
+                                            children: /bottom|right/.test(item[0]) ? children : children.reverse()
+                                        })
+                                    }
+
                                 })
                             }
                         }
@@ -188,16 +205,27 @@ export class PNode {
                     on: {
                         dragstart: (e: DragEvent) => {
                             console.log(e)
-                            this.dragSelf = true
                             Utils.setDragImg(e)
+                            Utils.setConfig(e, ast)
+                            this.dragSelf = true
+                            this.innerDraging = true
                         },
-                        dragend: () => {
+                        dragover: (e: DragEvent) => {
+                            Utils.stopBubble(e)
+                        },
+                        dragleave: () => {
+                            this.innerDragingStyleShow = false
+                        },
+                        dragend: (e: DragEvent) => {
+                            console.log('结束')
+                            Utils.stopBubble(e)
                             this.dragSelf = false
+                            this.innerDraging = false
                         },
                         click: (e: Event) => {
-                            
+                            this.currentKey = ast.key
                             // this.$emit('blockClick')
-                        }
+                        },
                     }
                 }, [
                     h(component, {
@@ -215,12 +243,24 @@ export class PNode {
                             boxSizing: 'border-box'
                         }
                     }, [
+                        // 选中线框
                         h('div', {
                             style: {
                                 position: 'absolute',
                                 inset: 0,
-                                border: '2px solid red',
-                                opacity: this.isSelected ? 1 : 0
+                                border: `2px solid ${LINE_COLOR}`,
+                                opacity: this.currentKey === ast.key ? 1 : 0
+                            }
+                        }),
+                        // 内部替换时显示的线框和背景
+                        h('div', {
+                            style: {
+                                position: 'absolute',
+                                inset: 0,
+                                border: `2px dashed ${LINE_COLOR}`,
+                                background: '#FFF',
+                                transition: 'opacity .3s',
+                                opacity: this.innerDragingStyleShow ? 0.5 : 0
                             }
                         }),
                         ...tipArea,

@@ -122,6 +122,7 @@ export class PNode {
                         on: {
                             dragover: (e: DragEvent) => {
                                 Utils.stopBubble(e)
+                                if (this.dragSelf) return
                                 if (!this.innerDraging) {
                                     this.tipAreaIndex = index
                                 } else {

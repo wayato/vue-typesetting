@@ -18,6 +18,7 @@ export class PNode {
     }
 
     // 创建容器
+    // 容器必定包含两个元素（这两个元素可能是叶子节点也可能是另一个容器）
     private createContainer(ast: PNodeAST): Component {
         // console.log('容器', ast.key)
 
@@ -26,30 +27,135 @@ export class PNode {
             props: {
                 updateData: Function,
                 operateCurrentKey: Function,
-                operateInnerDraging: Function
+                operateInnerDraging: Function,
+                flex: {
+                    type: Number,
+                    default: 1
+                }
+            },
+            data() {
+                return {
+                    lineShow: false, // 分割线是否展示
+                    clientX: 0,
+                    clientY: 0,
+                    height: 0,
+                    width: 0,
+                    hoverLine: { // 滑动辅助线
+                        show: false,
+                        draging: false,
+                        proportion: 0.5
+                    }
+                }
+            },
+            mounted() {
+                this.clientX = this.$el.offsetLeft
+                this.clientY = this.$el.offsetTop
+                this.height = this.$el.offsetHeight
+                this.width = this.$el.offsetWidth
             },
             render(h): VNode {
+                const getLine = (direction: Direction, proportion: number) => {
+                    if (direction === Direction.COLUMN) {
+                        return {
+                            left: 0,
+                            right: 0,
+                            height: '4px',
+                            top: `calc(${proportion} * 100% - 2px)`
+                        }
+                    } else {
+                        return {
+                            top: 0,
+                            bottom: 0,
+                            width: '4px',
+                            left: `calc(${proportion} * 100% - 2px)`
+                        }
+                    }
+                }
                 return h('div', {
                     style: {
+                        position: 'relative',
                         display: 'flex',
                         width: '100%',
                         height: '100%',
-                        flex: 1,
+                        flex: this.flex,
                         flexDirection: ast.direction
+                    },
+                    on: {
+                        drop: (e: DragEvent) => {
+                            Utils.stopBubble(e)
+                        },
+                        mousemove: (e: MouseEvent) => {
+                            if (this.hoverLine.draging) {
+                                // console.log(this.$el)
+                                // console.log(e.clientX, e.clientY)
+                                if (ast.direction === Direction.ROW) {
+                                    this.hoverLine.proportion = (e.clientX - this.clientX) / this.width
+                                } else {
+                                    this.hoverLine.proportion = (e.clientY - this.clientY) / this.height
+                                }
+                            }
+                        },
+                        mouseup: () => {
+                            this.hoverLine.draging = false
+                            this.updateData(ast.key, {
+                                ...ast,
+                                proportion: this.hoverLine.proportion
+                            })
+                        }
                     }
-                }, ast.children.map((childAst: PNodeAST) => {
-                    if (childAst.component) {
-                        return h(_this.createLeaf(childAst, Store.getComponent(childAst.component)), {
-                            props: this.$props,
-                            key: childAst.key
-                        })
-                    } else {
-                        return h(_this.createContainer(childAst), {
-                            props: this.$props,
-                            key: childAst.key
-                        })
-                    }
-                }))
+                }, [
+                    ...ast.children.map((childAst: PNodeAST, index: number) => {
+                        const flex = index === 0 ? (ast.proportion || 1) : (1 - (ast.proportion || 1))
+                        if (childAst.component) {
+                            return h(_this.createLeaf(childAst, Store.getComponent(childAst.component)), {
+                                props: {
+                                    ...this.$props,
+                                    flex: flex
+                                },
+                                key: childAst.key
+                            })
+                        } else {
+                            return h(_this.createContainer(childAst), {
+                                props: {
+                                    ...this.$props,
+                                    flex: flex
+                                },
+                                key: childAst.key
+                            })
+                        }
+                    }),
+                    h('div', {
+                        style: {
+                            position: 'absolute',
+                            zIndex: 500,
+                            background: 'pink',
+                            opacity: this.hoverLine.draging ? 1 : 0,
+                            ...getLine(ast.direction, this.hoverLine.proportion)
+                        }
+                    }),
+                    h('div', {
+                        style: {
+                            position: 'absolute',
+                            zIndex: 1000,
+                            background: 'red',
+                            cursor: 'grabbing',
+                            opacity: this.lineShow ? 1 : 0,
+                            ...getLine(ast.direction, ast.proportion)
+                        },
+                        on: {
+                            mouseover: () => {
+                                this.lineShow = true
+                            },
+                            mouseleave: () => {
+                                this.lineShow = false
+                            },
+                            mousedown: () => {
+                                this.lineShow = true
+                                this.hoverLine.draging = true
+                            }
+                        },
+                    })
+                ])
             }
         })
     }
@@ -63,7 +169,11 @@ export class PNode {
             props: {
                 operateCurrentKey: Function,
                 operateInnerDraging: Function,
-                updateData: Function
+                updateData: Function,
+                flex: {
+                    type: Number,
+                    default: 1
+                }
             },
             data: () => {
                 return {
@@ -162,7 +272,8 @@ export class PNode {
                                         ]
                                         this.updateData(ast.key, {
                                             key: Utils.getUuid(),
-                                            direction: /left|right/.test(item[0]) ? 'row' : 'column',
+                                            direction: /left|right/.test(item[0]) ? Direction.ROW : Direction.COLUMN,
+                                            proportion: 0.5,
                                             children: /bottom|right/.test(item[0]) ? children : children.reverse()
                                         })
                                     }
@@ -188,7 +299,7 @@ export class PNode {
                         const style = {
                             overflow: 'hidden',
                             position: 'relative',
-                            flex: 1,
+                            flex: this.flex,
                             opacity: this.dragSelf ? 0.5 : 1
                         }
                         if (ast?.layout) {
@@ -225,8 +336,10 @@ export class PNode {
                         },
                         click: (e: Event) => {
                             this.currentKey = ast.key
-                            // this.$emit('blockClick')
                         },
+                        drop: (e: DragEvent) => {
+                            Utils.stopBubble(e)
+                        }
                     }
                 }, [
                     h(component, {

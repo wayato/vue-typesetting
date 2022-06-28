@@ -8,6 +8,7 @@ import type { CreateElement } from "vue/types/vue"
  * 容器
  */
 export default class Container extends PNode<PNodeAST> {
+
     protected layout(h: CreateElement) {
         return h('div', {
             style: {
@@ -21,20 +22,16 @@ export default class Container extends PNode<PNodeAST> {
             }
         }, this.dataAST.children.map((childAst: PNodeAST) => {
             if (childAst.component) {
-                return h(new Leaf(childAst).create(), {
-                    on: {
-                        updateData: (...arg: any[]) => {
-                            this.vue.$emit('updateData', ...arg)
-                        }
-                    }
+                return new Leaf(childAst).render(h, {
+                    props: this.vue.$props,
+                    on: this.vue.$listeners,
+                    key: childAst.key
                 })
             } else {
-                return h(new Container(childAst).create(), {
-                    on: {
-                        updateData: (...arg: any[]) => {
-                            this.vue.$emit('updateData', ...arg)
-                        }
-                    }
+                return new Container(childAst).render(h, {
+                    props: this.vue.$props,
+                    on: this.vue.$listeners,
+                    key: childAst.key
                 })
             }
         })) // concat(new DragLine())

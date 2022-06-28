@@ -4,7 +4,9 @@ import type { CreateElement, ExtendedVue } from 'vue/types/vue'
 
 export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
 
-    protected vue: Vue
+    protected vue: Vue & {
+        [key: string]: any
+    }
 
     protected dataAST: T
 
@@ -13,11 +15,13 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
     }
 
     // 创建
-    public create(): ExtendedVue<Vue, unknown, unknown, unknown, Record<never, any>> {
+    public create(config?: any) {
         const _this = this
+        const keys: string[] = config ? Object.keys(config.props) : []
         return Vue.extend({
-            // props: this.props,
+            props: keys,
             data: () => this,
+            computed: this.createComputed(keys),
             render(h) {
                 _this.vue = this
                 return _this.layout(h)
@@ -25,6 +29,35 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
         })
     }
 
+    // 将props转成$开头的计算属性
+    private createComputed(keys: string[]) {
+        const computed: {
+            [key: string]: {
+                get: () => any,
+                set: (val: any) => void
+            }
+        } = {}
+        keys.forEach((key: string) => {
+            computed['$' + key] = {
+                get() {
+                    return this[key]()
+                },
+                set(val: any) {
+                    this[key](val)
+                }
+            }
+        })
+        return computed
+    }
+
+    public render(h: CreateElement, config?: any) {
+        return h(this.create(config), config)
+    }
+
     // 布局
     protected abstract layout(h: CreateElement): VNode
+
+    protected $emit(eventName: string, ...arg: any[]) {
+        this.vue.$emit(eventName, ...arg)
+    }
 }

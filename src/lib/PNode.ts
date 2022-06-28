@@ -1,7 +1,7 @@
 import type { Component, AsyncComponent, VNode } from "vue"
 import Vue from 'vue'
 import Utils from "./Utils"
-import Store from "./Store"
+// import Store from "./Store"
 
 export class PNode {
 
@@ -10,11 +10,11 @@ export class PNode {
 
     constructor(ast: PNodeAST) {
         // ast数据中存在component组件名称，则代表是叶子节点
-        if (ast.component) {
-            this.vueComponent = this.createLeaf(ast, Store.getComponent(ast.component))
-        } else {
-            this.vueComponent = this.createContainer(ast)
-        }
+        // if (ast.component) {
+        //     this.vueComponent = this.createLeaf(ast, Store.getComponent(ast.component))
+        // } else {
+        //     this.vueComponent = this.createContainer(ast)
+        // }
     }
 
     // 创建容器
@@ -107,13 +107,13 @@ export class PNode {
                     ...ast.children.map((childAst: PNodeAST, index: number) => {
                         const flex = index === 0 ? (ast.proportion || 1) : (1 - (ast.proportion || 1))
                         if (childAst.component) {
-                            return h(_this.createLeaf(childAst, Store.getComponent(childAst.component)), {
-                                props: {
-                                    ...this.$props,
-                                    flex: flex
-                                },
-                                key: childAst.key
-                            })
+                            // return h(_this.createLeaf(childAst, Store.getComponent(childAst.component)), {
+                            //     props: {
+                            //         ...this.$props,
+                            //         flex: flex
+                            //     },
+                            //     key: childAst.key
+                            // })
                         } else {
                             return h(_this.createContainer(childAst), {
                                 props: {

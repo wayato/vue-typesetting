@@ -25,7 +25,6 @@ export default class Typesetting {
     // page实例
     private page: Page
 
-
     constructor(pageConfig: PageBaseConfig, dataAsts: PNodeAST[] = []) {
         this.page = new Page(dataAsts)
         this.page.setConfig(pageConfig)

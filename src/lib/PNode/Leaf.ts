@@ -4,6 +4,7 @@ import Line from "./Line"
 import Typesetting from "../Typesetting"
 import type { VNode } from "vue"
 import Utils from "../Utils"
+import { PNodeAST, Direction } from "../type"
 
 /**
  * 叶子节点
@@ -134,14 +135,6 @@ export default class Leaf extends PNode<PNodeAST> {
                     }
                 }
             }))
-            // lineArea.push(h('div', {
-            //     style: {
-            //         position: 'absolute',
-            //         height: '2px',
-            //         top: 0,
-            //         width: 100%
-            //     }
-            // }))
         })
         return h('div', {
             attrs: {
@@ -205,15 +198,3 @@ export default class Leaf extends PNode<PNodeAST> {
 }
 
 type TPosition = 'top' | 'left' | 'right' | 'bottom'
-
-declare global{
-    enum Direction {
-        ROW = 'row',
-        COLUMN = 'column'
-    }
-} 
-
-enum Direction {
-    ROW = 'row',
-    COLUMN = 'column'
-}

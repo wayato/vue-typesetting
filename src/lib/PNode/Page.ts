@@ -3,7 +3,7 @@ import Utils from "../Utils"
 import Container from "./Container"
 import Leaf from "./Leaf"
 import type { CreateElement } from "vue/types/vue"
-import Vue from 'vue'
+import { PNodeAST, PageBaseConfig } from "../type"
 
 /**
  * 页面

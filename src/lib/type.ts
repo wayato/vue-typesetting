@@ -1,5 +1,5 @@
 // Page基本配置项
-type PageBaseConfig = {
+export type PageBaseConfig = {
     backgroundColor: string // 页面背景颜色
     watermark: string // 水印
     headerHeight: string // 页眉高度
@@ -11,7 +11,7 @@ type PageBaseConfig = {
 }
 
 // Page标题配置
-type PageTitleType = {
+export type PageTitleType = {
     fontFamily: string // 字体
     fontSize: string // 字号
     color: string // 颜色
@@ -20,7 +20,7 @@ type PageTitleType = {
     underline: boolean // 是否下划线
 }
 
-type PNodeAST = {
+export type PNodeAST = {
     key: string // 唯一标识，用于查找更新
     component?: string // 组件名称
     data?: any // 需要传入组件的参数
@@ -28,4 +28,9 @@ type PNodeAST = {
     proportion?: number // 容器节点的元素占比
     layout?: any // 组件位置，只有在悬浮排列的情况下才有
     children?: PNodeAST[]
+}
+
+export enum Direction {
+    ROW = 'row',
+    COLUMN = 'column'
 }

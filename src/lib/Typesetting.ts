@@ -1,5 +1,6 @@
 import type { Component, AsyncComponent } from "vue"
 import Page from "./PNode/Page"
+import { PageBaseConfig, PNodeAST } from "./type"
 import Utils from "./Utils"
 
 export default class Typesetting {

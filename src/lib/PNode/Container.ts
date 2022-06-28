@@ -1,10 +1,9 @@
 import PNode from "./PNode"
-import DragLine from "./Line"
 import Leaf from "./Leaf"
 import type { CreateElement } from "vue/types/vue"
 import Utils from "../Utils"
 import Line from "./Line"
-
+import { PNodeAST, Direction } from "../type"
 
 /**
  * 容器
@@ -122,9 +121,4 @@ export default class Container extends PNode<PNodeAST> {
             })
         ]))
     }
-}
-
-enum Direction {
-    ROW = 'row',
-    COLUMN = 'column'
 }

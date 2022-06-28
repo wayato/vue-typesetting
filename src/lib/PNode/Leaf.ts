@@ -150,7 +150,7 @@ export default class Leaf extends PNode<PNodeAST> {
             style: {
                 overflow: 'hidden',
                 position: 'relative',
-                flex: 1,
+                flex: this.vue.flex,
                 opacity: 1
             },
             on: {

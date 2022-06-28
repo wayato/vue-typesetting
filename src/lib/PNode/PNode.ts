@@ -10,6 +10,8 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
 
     protected dataAST: T
 
+    protected rect: DOMRect
+
     constructor(dataAst: T) {
         this.dataAST = dataAst
     }
@@ -22,6 +24,11 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
             props: keys,
             data: () => this,
             computed: this.createComputed(keys),
+            mounted() {
+                this.$nextTick(() => {
+                    _this.rect = this.$el.getBoundingClientRect()
+                })
+            },
             render(h) {
                 _this.vue = this
                 return _this.layout(h)

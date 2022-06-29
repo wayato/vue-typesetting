@@ -29,15 +29,18 @@ export default class Typesetting {
     constructor(pageConfig: PageBaseConfig, dataAsts: PNodeAST[] = []) {
         this.page = new Page(dataAsts)
         this.page.setConfig(pageConfig)
+        document.documentElement.addEventListener('dragover', Utils.stopBubble)
+
+        document.documentElement.addEventListener('drop', this.page.outerDrop.bind(this.page))
     }
 
     // 设置page的数据
-    setData(dataAsts: PNodeAST[]) {
+    public setData(dataAsts: PNodeAST[]) {
         this.page.setData(dataAsts)
     }
 
     // 设置page的基本配置
-    setConfig(pageConfig: PageBaseConfig) {
+    public setConfig(pageConfig: PageBaseConfig) {
         this.page.setConfig(pageConfig)
     }
 

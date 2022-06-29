@@ -9,7 +9,6 @@ import { PNodeAST, Direction } from "../type"
  * 容器
  */
 export default class Container extends PNode<PNodeAST> {
-
     // 是否显示分割线
     private splitLineShow: boolean = false
 
@@ -72,21 +71,22 @@ export default class Container extends PNode<PNodeAST> {
                     })
                 }
             }
-        }, this.dataAST.children.map((childAst: PNodeAST, index: number) => {
-            const params = {
-                props: {
-                    ...this.vue.$props,
-                    flex: index === 0 ? this.dataAST.proportion : (1 - this.dataAST.proportion)
-                },
-                on: this.vue.$listeners,
-                key: childAst.key
-            }
-            if (childAst.component) {
-                return new Leaf(childAst).render(h, params)
-            } else {
-                return new Container(childAst).render(h, params)
-            }
-        }).concat([
+        }, [
+            ...this.dataAST.children.map((childAst: PNodeAST, index: number) => {
+                const params = {
+                    props: {
+                        ...this.vue.$props,
+                        flex: index === 0 ? this.dataAST.proportion : (1 - this.dataAST.proportion)
+                    },
+                    on: this.vue.$listeners,
+                    key: childAst.key
+                }
+                if (childAst.component) {
+                    return new Leaf(childAst).render(h, params)
+                } else {
+                    return new Container(childAst).render(h, params)
+                }
+            }),
             // 跟随线
             h('div', {
                 style: {
@@ -119,6 +119,6 @@ export default class Container extends PNode<PNodeAST> {
                     }
                 },
             })
-        ]))
+        ])
     }
 }

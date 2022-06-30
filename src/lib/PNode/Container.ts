@@ -46,28 +46,29 @@ export default class Container extends PNode<PNodeAST> {
                 width: '100%',
                 height: '100%',
                 flex: this.vue.flex,
-                flexDirection: this.dataAST.direction
+                flexDirection: this.dataAST.dir
             },
             on: {
                 drop: Utils.stopBubble,
                 mousemove: (e: MouseEvent) => {
                     if (!this.isDraging) return
-                    if (this.dataAST.direction === Direction.ROW) {
-                        this.dragLineProportion = (e.clientX - this.rect.left) / this.rect.width
+                    if (this.dataAST.dir === Direction.ROW) {
+                        this.dragLineProportion = Number(((e.clientX - this.rect.left) / this.rect.width).toFixed(2))
                     } else {
-                        this.dragLineProportion = (e.clientY - this.rect.top) / this.rect.height
+                        this.dragLineProportion = Number(((e.clientY - this.rect.top) / this.rect.height).toFixed(2))
                     }
                     if (this.dragLineProportion > 1) this.dragLineProportion = 1
                     if (this.dragLineProportion < 0) this.dragLineProportion = 0
                     this.dragLineShow = true
                 },
-                mouseup: () => {
+                mouseup: (e: MouseEvent) => {
+                    if (!this.isDraging || !this.dragLineShow) return
                     this.dragLineShow = false
-                    if (!this.isDraging) return
                     this.isDraging = false
-                    this.$emit('updateData', this.dataAST.key, {
+                    this.PNodeMAP.clear() // 清理掉Vue子类，以触发重新加载
+                    this.$emit('updateData', this.dataAST.id, {
                         ...this.dataAST,
-                        proportion: this.dragLineProportion
+                        p: this.dragLineProportion
                     })
                 }
             }
@@ -76,16 +77,19 @@ export default class Container extends PNode<PNodeAST> {
                 const params = {
                     props: {
                         ...this.vue.$props,
-                        flex: index === 0 ? this.dataAST.proportion : (1 - this.dataAST.proportion)
+                        flex: index === 0 ? this.dataAST.p : (1 - this.dataAST.p)
                     },
                     on: this.vue.$listeners,
-                    key: childAst.key
+                    key: childAst.id
                 }
-                if (childAst.component) {
-                    return new Leaf(childAst).render(h, params)
-                } else {
-                    return new Container(childAst).render(h, params)
+                if (!this.PNodeMAP.get(childAst.id)) {
+                    if (childAst.comp) {
+                        this.PNodeMAP.set(childAst.id, new Leaf())
+                    } else {
+                        this.PNodeMAP.set(childAst.id, new Container())
+                    }
                 }
+                return this.PNodeMAP.get(childAst.id).render(h, childAst, params)
             }),
             // 跟随线
             h('div', {
@@ -93,30 +97,38 @@ export default class Container extends PNode<PNodeAST> {
                     position: 'absolute',
                     background: Line.color,
                     opacity: this.dragLineShow ? 0.5 : 0,
-                    ...getLine(this.dataAST.direction, this.dragLineProportion)
+                    ...getLine(this.dataAST.dir, this.dragLineProportion)
                 }
             }),
             // 分割线
             h('div', {
+                attrs: {
+                    draggable: false
+                },
                 style: {
                     position: 'absolute',
                     background: Line.color,
                     cursor: 'grabbing',
                     opacity: this.splitLineShow ? 1 : 0,
-                    ...getLine(this.dataAST.direction, this.dataAST.proportion)
+                    ...getLine(this.dataAST.dir, this.dataAST.p)
                 },
                 on: {
-                    mouseover: () => {
+                    mouseover: (e: MouseEvent) => {
                         this.splitLineShow = true
                     },
-                    mouseleave: () => {
+                    mouseleave: (e: MouseEvent) => {
                         if (this.isDraging) return
                         this.splitLineShow = false
                     },
-                    mousedown: () => {
-                        this.splitLineShow = true
+                    mousedown: (e: MouseEvent) => {
+                        Utils.stopBubble(e)
                         this.isDraging = true
-                    }
+                    },
+                    mouseup: (e: MouseEvent) => {
+                        Utils.stopBubble(e)
+                        this.isDraging = false
+                    },
+                    click: Utils.stopBubble
                 },
             })
         ])

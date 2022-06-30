@@ -1,11 +1,14 @@
 import Vue from 'vue'
-import type { VNode } from 'vue'
-import type { CreateElement } from 'vue/types/vue'
+import type { VNode, } from 'vue'
+import type { CreateElement, ExtendedVue } from 'vue/types/vue'
 import { PNodeAST } from '../type'
 
 export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
 
-    protected vue: Vue & {
+    // 抽象方法，每个PNode需要实现的布局
+    protected abstract layout(h: CreateElement): VNode
+
+    public vue: Vue & {
         [key: string]: any
     }
 
@@ -13,15 +16,17 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
 
     protected rect: DOMRect
 
-    constructor(dataAst: T) {
-        this.dataAST = dataAst
-    }
+    // 存放当前PNode下所有直属关系的后代PNode
+    protected PNodeMAP: Map<string, PNode<PNodeAST>> = new Map()
 
-    // 创建
-    public create(config?: any) {
+    // 用来生成当前vue实例的类，每个Key只生成一次该类，否则会引起组件重新加载
+    private vueCtr: VueCtr = null
+
+    // 创建Vue的子类
+    public create(keys: string[] = []): VueCtr {
+        if (this.vueCtr) return this.vueCtr // 如果已经有该类，不需要二次创建
         const _this = this
-        const keys: string[] = config ? Object.keys(config.props) : []
-        return Vue.extend({
+        this.vueCtr = Vue.extend({
             props: keys,
             data: () => this,
             computed: this.createComputed(keys),
@@ -35,6 +40,7 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
                 return _this.layout(h)
             }
         })
+        return this.vueCtr
     }
 
     // 将props转成$开头的计算属性
@@ -58,14 +64,29 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
         return computed
     }
 
-    public render(h: CreateElement, config?: any) {
-        return h(this.create(config), config)
+    public render(h: CreateElement, dataAST: T, config?: any) {
+        this.dataAST = dataAST
+        this.clearPNodeMAP()
+        const keys: string[] = config ? Object.keys(config.props) : []
+        return h(this.create(keys), config)
     }
-
-    // 布局
-    protected abstract layout(h: CreateElement): VNode
 
     protected $emit(eventName: string, ...arg: any[]) {
         this.vue.$emit(eventName, ...arg)
     }
+
+    // 当容器内的节点发生变化，需要清除用不到的
+    private clearPNodeMAP() {
+        if (!Array.isArray(this.dataAST)) {
+            if (this.dataAST.children) {
+                this.dataAST.children.forEach((item: PNodeAST) => {
+                    if (!this.PNodeMAP.has(item.id)) {
+                        this.PNodeMAP.delete(item.id)
+                    }
+                })
+            }
+        }
+    }
 }
+
+type VueCtr = ExtendedVue<Vue, unknown, unknown, unknown, Record<never, any>>

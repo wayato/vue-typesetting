@@ -27,8 +27,9 @@ export default class Typesetting {
     private page: Page
 
     constructor(pageConfig: PageBaseConfig, dataAsts: PNodeAST[] = []) {
-        this.page = new Page(dataAsts)
+        this.page = new Page()
         this.page.setConfig(pageConfig)
+        this.page.setData(dataAsts)
         document.documentElement.addEventListener('dragover', Utils.stopBubble)
 
         document.documentElement.addEventListener('drop', this.page.outerDrop.bind(this.page))
@@ -45,9 +46,15 @@ export default class Typesetting {
     }
 
     // 渲染
-    render($el: HTMLElement) {
+    public render($el: HTMLElement) {
         $el.style.position = 'relative' // 保证是相对定位
         const component = this.page.create()
         $el.append(new component().$mount().$el)
+    }
+
+    // 监听事件
+    public addEventListener(eventName: string, callback: (id: string, e: Event) => {}) {
+        // TODO 点击事件
+        // TODO 数据改变
     }
 }

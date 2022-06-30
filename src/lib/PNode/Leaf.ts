@@ -22,7 +22,7 @@ export default class Leaf extends PNode<PNodeAST> {
 
     // 点击
     private click() {
-        this.vue.$pageCurrentKey = this.dataAST.key
+        this.vue.$pageCurrentKey = this.dataAST.id
     }
 
     // 开始拖拽
@@ -64,34 +64,26 @@ export default class Leaf extends PNode<PNodeAST> {
         // 拖拽的是自身则不执行放置事件
         if (this.dragSelf) return
         this.tipAreaIndex = -1
-        Utils.getConfig(e).then(res => {
-            if (res.key) {
-                // 有key代表是已经在画布上的元素进行交换
-                this.$emit('updateData', this.dataAST.key, {
-                    ...res,
-                    key: Utils.getUuid()
-
-                })
-                this.$emit('updateData', res.key, {
-                    ...this.dataAST,
-                    key: Utils.getUuid()
-                })
+        Utils.getConfig(e).then((res: PNodeAST) => {
+            if (res.id) {
+                // 有id代表是已经在画布上的元素进行交换
+                this.$emit('updateData', this.dataAST.id, res.id)
             } else {
-                // 没有key代表新加入的元素
+                // 没有id代表新加入的元素
                 const children = [
                     {
-                        key: Utils.getUuid(),
-                        component: this.dataAST.component
+                        id: this.dataAST.id,
+                        comp: this.dataAST.comp
                     },
                     {
-                        key: Utils.getUuid(),
-                        component: res.component
+                        id: Utils.getUuid(),
+                        comp: res.comp
                     }
                 ]
-                this.$emit('updateData', this.dataAST.key, {
-                    key: Utils.getUuid(),
-                    direction: /left|right/.test(position) ? Direction.ROW : Direction.COLUMN,
-                    proportion: 0.5,
+                this.$emit('updateData', this.dataAST.id, {
+                    id: Utils.getUuid(),
+                    dir: /left|right/.test(position) ? Direction.ROW : Direction.COLUMN,
+                    p: 0.5,
                     children: /bottom|right/.test(position) ? children : children.reverse()
                 })
             }
@@ -155,7 +147,7 @@ export default class Leaf extends PNode<PNodeAST> {
                 click: this.click.bind(this)
             }
         }, [
-            h(Typesetting.getComponent(this.dataAST.component), {
+            h(Typesetting.getComponent(this.dataAST.comp), {
                 style: {
                     position: 'absolute',
                     inset: 0,
@@ -176,7 +168,7 @@ export default class Leaf extends PNode<PNodeAST> {
                         position: 'absolute',
                         inset: 0,
                         border: `2px solid ${Line.color}`,
-                        opacity: this.vue.$pageCurrentKey === this.dataAST.key ? 1 : 0
+                        opacity: this.vue.$pageCurrentKey === this.dataAST.id ? 1 : 0
                     }
                 }),
                 // 内部拖拽时显示的线框和背景

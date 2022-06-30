@@ -21,11 +21,11 @@ export type PageTitleType = {
 }
 
 export type PNodeAST = {
-    key: string // 唯一标识，用于查找更新
-    component?: string // 组件名称
+    id: string // 唯一标识，用于查找更新
+    comp?: string // 组件名称
     data?: any // 需要传入组件的参数
-    direction?: Direction // 排列方式 水平row 垂直column
-    proportion?: number // 容器节点的元素占比
+    dir?: Direction // 排列方式 水平row 垂直column
+    p?: number // 容器节点的元素占比
     layout?: any // 组件位置，只有在悬浮排列的情况下才有
     children?: PNodeAST[]
 }

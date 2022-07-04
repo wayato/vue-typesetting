@@ -1,6 +1,6 @@
 {
   "name": "vue-typesetting",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "wsg",
   "license": "MIT",
   "main": "./dist/main.js",

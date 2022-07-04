@@ -47,9 +47,7 @@ export default class Typesetting {
             const { ast } = this.page.findAst(id)
             this.page.updateData(id, {
                 ...ast,
-                data: {
-                    color: data
-                }
+                data
             })
         } catch (e) {
             console.error('查询不到id所在节点')

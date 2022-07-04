@@ -30,14 +30,30 @@ export default class Typesetting {
         this.page = new Page()
         this.page.setConfig(pageConfig)
         this.page.setData(dataAsts)
-        document.documentElement.addEventListener('dragover', Utils.stopBubble)
 
+        document.documentElement.addEventListener('dragover', Utils.stopBubble)
         document.documentElement.addEventListener('drop', this.page.outerDrop.bind(this.page))
     }
 
     // 设置page的数据
+    // 整体替换
     public setData(dataAsts: PNodeAST[]) {
         this.page.setData(dataAsts)
+    }
+
+    // 根据id更改数据
+    public updateData(id: string, data: unknown) {
+        try {
+            const { ast } = this.page.findAst(id)
+            this.page.updateData(id, {
+                ...ast,
+                data: {
+                    color: data
+                }
+            })
+        } catch (e) {
+            console.error('查询不到id所在节点')
+        }
     }
 
     // 设置page的基本配置
@@ -53,8 +69,7 @@ export default class Typesetting {
     }
 
     // 监听事件
-    public addEventListener(eventName: string, callback: (id: string, e: Event) => {}) {
-        // TODO 点击事件
-        // TODO 数据改变
+    public addEventListener(eventName: string, callback: (e: unknown) => void) {
+        this.page.setEvent(eventName, callback)
     }
 }

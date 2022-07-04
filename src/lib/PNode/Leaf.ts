@@ -71,10 +71,7 @@ export default class Leaf extends PNode<PNodeAST> {
             } else {
                 // 没有id代表新加入的元素
                 const children = [
-                    {
-                        id: this.dataAST.id,
-                        comp: this.dataAST.comp
-                    },
+                    this.dataAST,
                     {
                         id: Utils.getUuid(),
                         comp: res.comp
@@ -148,6 +145,7 @@ export default class Leaf extends PNode<PNodeAST> {
             }
         }, [
             h(Typesetting.getComponent(this.dataAST.comp), {
+                props: this.dataAST.data || {},
                 style: {
                     position: 'absolute',
                     inset: 0,

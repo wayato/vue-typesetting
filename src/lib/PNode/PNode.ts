@@ -32,7 +32,7 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
             computed: this.createComputed(keys),
             mounted() {
                 this.$nextTick(() => {
-                    _this.rect = this.$el.getBoundingClientRect()
+                    if (this.$el) _this.rect = this.$el.getBoundingClientRect()
                 })
             },
             render(h) {

@@ -20,6 +20,9 @@ export default class Page extends PNode<PNodeAST[]> {
     // 当前选中的key
     public currentKey: string = ''
 
+    // 事件集合
+    private events: Map<string, (e: unknown) => void> = new Map()
+
     public setConfig(baseConfig: PageBaseConfig) {
         this.baseConfig = baseConfig
     }
@@ -28,8 +31,12 @@ export default class Page extends PNode<PNodeAST[]> {
         this.dataAST = dataAst
     }
 
+    public setEvent(key: string, event: (e: unknown) => void) {
+        this.events.set(key, event)
+    }
+
     // 更新数据
-    private updateData(id: string, param?: string | PNodeAST) {
+    public updateData(id: string, param?: string | PNodeAST) {
         if (typeof param === 'string') {
             this.exchangeAst(id, param)
         } else if (param === undefined) {
@@ -37,11 +44,13 @@ export default class Page extends PNode<PNodeAST[]> {
         } else {
             this.updateAst(id, param)
         }
-        console.log(JSON.stringify(this.dataAST))
+        if (this.events.has('update')) {
+            this.events.get('update')(JSON.parse(JSON.stringify(this.dataAST)))
+        }
     }
 
     // 找到节点
-    private findAst(id: string, fatherChildren: PNodeAST[] = this.dataAST, father?: PNodeAST): FindAst | undefined {
+    public findAst(id: string, fatherChildren: PNodeAST[] = this.dataAST, father?: PNodeAST): FindAst | undefined {
         for (let i: number = 0; i < fatherChildren.length; i++) {
             if (fatherChildren[i].id === id) {
                 return {
@@ -84,14 +93,16 @@ export default class Page extends PNode<PNodeAST[]> {
     // 将id节点的父节点更改为id节点的兄弟节点
     private deleteAst(id: string) {
         const findAst: FindAst = this.findAst(id)
+        console.log('delete', !!findAst.father, findAst)
         if (findAst.father) {
             // fatherChildren只有两个元素，!findAst.index非0即1，非1即0，便是其兄弟节点
             const sibling: PNodeAST = findAst.fatherChildren[Number(!findAst.index)]
-            findAst.father.children = undefined
-            findAst.father.p = undefined
-            findAst.father.dir = undefined
+            console.log(sibling)
             findAst.father.comp = sibling.comp
             findAst.father.id = sibling.id
+            delete findAst.father.children
+            delete findAst.father.p
+            delete findAst.father.dir
         } else {
             this.vue.$delete(findAst.fatherChildren, findAst.index)
         }
@@ -116,6 +127,9 @@ export default class Page extends PNode<PNodeAST[]> {
                     pageCurrentKey: (key?: string): string | void =>  {
                         if (key) {
                             this.currentKey = key
+                            if (this.events.has('click')) {
+                                this.events.get('click')(this.findAst(key).ast)
+                            }
                         } else {
                             return this.currentKey
                         }
@@ -148,7 +162,7 @@ export default class Page extends PNode<PNodeAST[]> {
     public pageDrop(e: DragEvent) {
         Utils.stopBubble(e)
         Utils.getConfig(e).then((res: PNodeAST) => {
-            this.updateAst(null, res)
+            this.updateData(null, res)
         })
     }
  

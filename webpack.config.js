@@ -1,8 +1,7 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
 const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-
+const webpack = require('webpack');
 const isProduction = process.env.NODE_ENV == "production";
 
 const stylesHandler = "style-loader";
@@ -11,6 +10,8 @@ const config = {
   entry: "./src/main.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
+    filename: 'main.js',
+    clean: true,
     library: {
       name: 'Typesetting',
       type: 'umd',
@@ -19,16 +20,17 @@ const config = {
     },
   },
   devServer: {
-    open: true,
-    host: "localhost",
+    liveReload: true,  // liveReload替代hot进行热更新
+    port: 9000,   // 端口号
+    devMiddleware: {
+      writeToDisk: (filename) => {
+        return /main.js/.test(filename);
+      }
+    }
   },
   plugins: [
-    // new HtmlWebpackPlugin({
-    //   template: "index.html",
-    // }),
-
-    // Add your plugins here
-    // Learn more about plugins from https://webpack.js.org/configuration/plugins/
+    //热更新插件
+    new webpack.HotModuleReplacementPlugin()  // 在最开始需要引入 const webpack = require('webpack');
   ],
   module: {
     rules: [
@@ -57,6 +59,14 @@ const config = {
   resolve: {
     extensions: [".tsx", ".ts", ".jsx", ".js", "..."],
   },
+  externals: {
+    vue: {
+      root: 'Vue',
+      commonjs: 'vue',
+      commonjs2: 'vue',
+      amd: 'vue'
+    }
+  }
 };
 
 module.exports = () => {

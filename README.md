@@ -1,15 +1,25 @@
-# 🚀 Welcome to your new awesome project!
-
-This project has been created using **webpack-cli**, you can now run
-
+1. 设置vue
 ```
-npm run build
+    import Typesetting from 'vue-typesetting'
+    Typesetting.setVue(this)
 ```
-
-or
-
+2. 实例化
 ```
-yarn build
+    const typesetting = new Typesetting({
+        fontSize: '16px',
+        backgroundColor: 'red',
+    }) // page基本配置
+    typesetting.setData() // 初始化布局
 ```
-
-to bundle your application
+3. 渲染
+```
+    typesetting.render(document.querySelector('#center'))
+```
+4. 拖拽进入
+```
+    <div @dragstart="(e) => {
+        Typesetting.setDragData(e, {
+            component: component
+        })
+    }">
+```

@@ -61,6 +61,7 @@ export default class Leaf extends PNode<PNodeAST> {
     // position: 放置的方位
     private drop(e: DragEvent, position: TPosition) {
         Utils.stopBubble(e)
+        this.tipAreaAll = false
         // 拖拽的是自身则不执行放置事件
         if (this.dragSelf) return
         this.tipAreaIndex = -1

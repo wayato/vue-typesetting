@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import type { VNode, } from 'vue'
-import type { CreateElement, ExtendedVue } from 'vue/types/vue'
+import type { CreateElement, VueConstructor } from 'vue/types/vue'
 import { PNodeAST } from '../type'
 
 export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
@@ -20,10 +20,10 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
     protected PNodeMAP: Map<string, PNode<PNodeAST>> = new Map()
 
     // 用来生成当前vue实例的类，每个Key只生成一次该类，否则会引起组件重新加载
-    private vueCtr: VueCtr = null
+    private vueCtr: VueConstructor = null
 
     // 创建Vue的子类
-    public create(keys: string[] = []): VueCtr {
+    public create(keys: string[] = []): VueConstructor {
         if (this.vueCtr) return this.vueCtr // 如果已经有该类，不需要二次创建
         const _this = this
         this.vueCtr = Vue.extend({
@@ -35,11 +35,12 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
                     if (this.$el) _this.rect = this.$el.getBoundingClientRect()
                 })
             },
-            render(h) {
+            render(h: CreateElement) {
                 _this.vue = this
                 return _this.layout(h)
             }
         })
+        
         return this.vueCtr
     }
 
@@ -88,5 +89,3 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
         }
     }
 }
-
-type VueCtr = ExtendedVue<Vue, unknown, unknown, unknown, Record<never, any>>

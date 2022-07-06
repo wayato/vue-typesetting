@@ -93,11 +93,9 @@ export default class Page extends PNode<PNodeAST[]> {
     // 将id节点的父节点更改为id节点的兄弟节点
     private deleteAst(id: string) {
         const findAst: FindAst = this.findAst(id)
-        console.log('delete', !!findAst.father, findAst)
         if (findAst.father) {
             // fatherChildren只有两个元素，!findAst.index非0即1，非1即0，便是其兄弟节点
             const sibling: PNodeAST = findAst.fatherChildren[Number(!findAst.index)]
-            console.log(sibling)
             findAst.father.comp = sibling.comp
             findAst.father.id = sibling.id
             delete findAst.father.children
@@ -170,6 +168,8 @@ export default class Page extends PNode<PNodeAST[]> {
     public outerDrop(e: DragEvent) {
         Utils.stopBubble(e)
         Utils.getConfig(e).then((res: PNodeAST) => {
+            const findAst: FindAst = this.findAst(res.id)
+            if (!findAst) return // 将新节点放入删除区域会触发此条件
             this.updateData(res.id)
         })
     }

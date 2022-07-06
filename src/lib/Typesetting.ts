@@ -2,6 +2,7 @@ import type { Component, AsyncComponent } from "vue"
 import Page from "./PNode/Page"
 import { PageBaseConfig, PNodeAST } from "./type"
 import Utils from "./Utils"
+import Vue from 'vue'
 
 export default class Typesetting {
     // 当前处于的vue实例

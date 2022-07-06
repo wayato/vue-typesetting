@@ -4,13 +4,12 @@ import type { CreateElement } from "vue/types/vue"
 import Utils from "../Utils"
 import Line from "./Line"
 import { PNodeAST, Direction } from "../type"
+import '../../style/container.less'
 
 /**
  * 容器
  */
 export default class Container extends PNode<PNodeAST> {
-    // 是否显示分割线
-    private splitLineShow: boolean = false
 
     // 是否显示跟随线
     private dragLineShow: boolean = false
@@ -40,6 +39,9 @@ export default class Container extends PNode<PNodeAST> {
             }
         }
         return h('div', {
+            class: {
+                'vue-typesetting__container': true
+            },
             style: {
                 position: 'relative',
                 display: 'flex',
@@ -105,21 +107,16 @@ export default class Container extends PNode<PNodeAST> {
                 attrs: {
                     draggable: false
                 },
+                class: {
+                    'vue-typesetting__container-split-line': true
+                },
                 style: {
                     position: 'absolute',
                     background: Line.color,
                     cursor: 'grabbing',
-                    opacity: this.splitLineShow ? 1 : 0,
                     ...getLine(this.dataAST.dir, this.dataAST.p)
                 },
                 on: {
-                    mouseover: (e: MouseEvent) => {
-                        this.splitLineShow = true
-                    },
-                    mouseleave: (e: MouseEvent) => {
-                        if (this.isDraging) return
-                        this.splitLineShow = false
-                    },
                     mousedown: (e: MouseEvent) => {
                         Utils.stopBubble(e)
                         this.isDraging = true

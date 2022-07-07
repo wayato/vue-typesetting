@@ -71,10 +71,11 @@ export default class Leaf extends PNode<PNodeAST> {
                 this.$emit('updateData', this.dataAST.id, res.id)
             } else {
                 // 没有id代表新加入的元素
+                const id: string = Utils.getUuid()
                 const children = [
                     this.dataAST,
                     {
-                        id: Utils.getUuid(),
+                        id,
                         comp: res.comp
                     }
                 ]
@@ -84,6 +85,7 @@ export default class Leaf extends PNode<PNodeAST> {
                     p: 0.5,
                     children: /bottom|right/.test(position) ? children : children.reverse()
                 })
+                this.vue.$pageCurrentKey = id
             }
 
         })

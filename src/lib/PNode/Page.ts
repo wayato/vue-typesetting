@@ -4,6 +4,8 @@ import Container from "./Container"
 import Leaf from "./Leaf"
 import type { CreateElement } from "vue/types/vue"
 import { PNodeAST, PageBaseConfig } from "../type"
+import type { VNode } from "vue/types/vnode"
+import '../../style/page.less'
 
 /**
  * 页面
@@ -71,11 +73,19 @@ export default class Page extends PNode<PNodeAST[]> {
     // 找到id的节点，把更改后的数据更新进去
     private updateAst(id: string, targetAst: PNodeAST) {
         if (id === null) {
+            id = Utils.getUuid()
             // page第一层插入元素
             this.dataAST.push({
                 ...targetAst,
-                id: Utils.getUuid()
+                id
             })
+            this.currentKey = id // 默认选中插入的元素
+            if (this.events.has('click')) {
+                this.events.get('click')({
+                    id: this.currentKey,
+                    comp: targetAst.comp
+                })
+            }
             return
         }
         const findAst: FindAst = this.findAst(id)
@@ -104,56 +114,105 @@ export default class Page extends PNode<PNodeAST[]> {
         } else {
             this.vue.$delete(findAst.fatherChildren, findAst.index)
         }
+        // 如果是删除的选中的节点，清理掉并通知外界
+        if (id === this.currentKey) {
+            this.currentKey = ''
+            if (this.events.has('click')) {
+                this.events.get('click')({
+                    id: '',
+                    comp: ''
+                })
+            }
+        } 
     }
     
-    protected layout(h: CreateElement) {
+    protected layout(h: CreateElement): VNode {
+        function headerFooter (): VNode {
+            return h('div', {
+                style: {
+                    height: '40px',
+                    display: 'flex',
+                    border: '1px dashed #E6E6FF'
+                }
+            }, new Array(3).fill(null).map((_, index: number) => h('div', {
+                class: {
+                    'vue-typesetting__headerFooter': true
+                },
+                style: {
+                    flex: 1,
+                    borderLeft: index === 0 ? 0 : '1px dashed #E6E6FF'
+                },
+                on: {
+                    // TODO 页眉页脚点击事件
+                    // click: () => {
+                    //     this.currentKey = ''
+                    //     if (this.events.has('click')) {
+                    //         this.events.get('click')({
+                    //             id: null,
+                    //             comp: ''
+                    //         })
+                    //     }
+                    // }
+                }
+            })))
+        }
         return h('div', {
             style: {
                 position: 'absolute',
                 display: 'flex',
-                inset: 0
+                flexDirection: 'column',
+                inset: '10px'
             },
-            on: {
-                dragover: Utils.stopBubble,
-                drop: this.pageDrop.bind(this)
-            }
-        }, this.dataAST.map((childAst: PNodeAST) => {
-            const params = {
-                key: childAst.id,
-                props: {
-                    // 获取或设置当前选中的key
-                    pageCurrentKey: (key?: string): string | void =>  {
-                        if (key) {
-                            this.currentKey = key
-                            if (this.events.has('click')) {
-                                this.events.get('click')(this.findAst(key).ast)
-                            }
-                        } else {
-                            return this.currentKey
-                        }
-                    },
-                    // 获取或设置内部正在拖拽的状态
-                    pageInnerDraging: (status?: boolean): boolean | void => {
-                        if (typeof status === 'boolean') {
-                            this.isDragInner = status
-                        } else {
-                            return this.isDragInner
-                        }
-                    }
+        }, [
+            headerFooter(),
+            h('div', {
+                style: {
+                    flex: 1,
+                    display: 'flex'
                 },
                 on: {
-                    updateData: this.updateData.bind(this)
+                    dragover: Utils.stopBubble,
+                    drop: this.pageDrop.bind(this)
                 }
-            }
-            if (!this.PNodeMAP.get(childAst.id)) {
-                if (childAst.comp) {
-                    this.PNodeMAP.set(childAst.id, new Leaf())
-                } else {
-                    this.PNodeMAP.set(childAst.id, new Container())
+            }, this.dataAST.map((childAst: PNodeAST) => {
+                const params = {
+                    key: childAst.id,
+                    props: {
+                        // 获取或设置当前选中的key
+                        pageCurrentKey: (key?: string): string | void =>  {
+                            if (key) {
+                                this.currentKey = key
+                                if (this.events.has('click')) {
+                                    this.events.get('click')(this.findAst(key).ast)
+                                }
+                            } else {
+                                return this.currentKey
+                            }
+                        },
+                        // 获取或设置内部正在拖拽的状态
+                        pageInnerDraging: (status?: boolean): boolean | void => {
+                            if (typeof status === 'boolean') {
+                                this.isDragInner = status
+                            } else {
+                                return this.isDragInner
+                            }
+                        }
+                    },
+                    on: {
+                        updateData: this.updateData.bind(this)
+                    }
                 }
-            }
-            return this.PNodeMAP.get(childAst.id).render(h, childAst, params)
-        }))
+                if (!this.PNodeMAP.get(childAst.id)) {
+                    if (childAst.comp) {
+                        this.PNodeMAP.set(childAst.id, new Leaf())
+                    } else {
+                        this.PNodeMAP.set(childAst.id, new Container())
+                    }
+                }
+                return this.PNodeMAP.get(childAst.id).render(h, childAst, params)
+            })),
+            headerFooter()
+        ])
     }
 
     // 放置事件

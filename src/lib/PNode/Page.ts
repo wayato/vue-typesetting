@@ -158,10 +158,12 @@ export default class Page extends PNode<PNodeAST[]> {
                 position: 'absolute',
                 display: 'flex',
                 flexDirection: 'column',
-                inset: '10px'
+                inset: 0,
+                padding: '10px',
+                backgroundColor: this.baseConfig?.backgroundColor || '#FFF'
             },
         }, [
-            headerFooter(),
+            headerFooter.call(this),
             h('div', {
                 style: {
                     flex: 1,
@@ -205,7 +207,7 @@ export default class Page extends PNode<PNodeAST[]> {
                 }
                 return this.PNodeMAP.get(childAst.id).render(h, childAst, params)
             })),
-            headerFooter()
+            headerFooter.call(this)
         ])
     }
 

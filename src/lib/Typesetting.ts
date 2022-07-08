@@ -46,6 +46,7 @@ export default class Typesetting {
     public updateData(id: string, data: unknown) {
         try {
             const { ast } = this.page.findAst(id)
+            if (JSON.stringify(ast.data) === JSON.stringify(data)) return // 数据相同则不执行
             this.page.updateData(id, {
                 ...ast,
                 data

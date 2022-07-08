@@ -75,8 +75,8 @@ export default class Leaf extends PNode<PNodeAST> {
                 const children = [
                     this.dataAST,
                     {
-                        id,
-                        comp: res.comp
+                        ...res,
+                        id
                     }
                 ]
                 this.$emit('updateData', this.dataAST.id, {

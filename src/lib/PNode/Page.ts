@@ -38,11 +38,11 @@ export default class Page extends PNode<PNodeAST[]> {
         this.events.set(key, event)
     }
 
-    private idChange(id: string, comp: string) {
+    private idChange(id: string, comp: string, data?: any, extraData?: any) {
         if (this.currentKey === id) return
         this.currentKey = id
         if (this.events.has('idChange')) {
-            this.events.get('idChange')({ id, comp })
+            this.events.get('idChange')({ id, comp, data: data || null, extraData: extraData || null })
         }
     }
 
@@ -88,7 +88,7 @@ export default class Page extends PNode<PNodeAST[]> {
                 ...targetAst,
                 id
             })
-            this.idChange(id, targetAst.comp)
+            this.idChange(id, targetAst.comp, targetAst.data, targetAst.extraData)
             return
         }
         const findAst: FindAst = this.findAst(id)
@@ -109,8 +109,7 @@ export default class Page extends PNode<PNodeAST[]> {
         if (findAst.father) {
             // fatherChildren只有两个元素，!findAst.index非0即1，非1即0，便是其兄弟节点
             const sibling: PNodeAST = findAst.fatherChildren[Number(!findAst.index)]
-            findAst.father.comp = sibling.comp
-            findAst.father.id = sibling.id
+            Object.assign(findAst.father, sibling)
             delete findAst.father.children
             delete findAst.father.p
             delete findAst.father.dir
@@ -180,7 +179,8 @@ export default class Page extends PNode<PNodeAST[]> {
                         // 获取或设置当前选中的key
                         pageCurrentKey: (key?: string): string | void =>  {
                             if (key) {
-                                this.idChange(key, this.findAst(key).ast.comp)
+                                const ast: PNodeAST = this.findAst(key).ast
+                                this.idChange(key, ast.comp, ast.data, ast.extraData)
                             } else {
                                 return this.currentKey
                             }

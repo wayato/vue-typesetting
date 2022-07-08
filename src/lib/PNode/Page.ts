@@ -31,10 +31,19 @@ export default class Page extends PNode<PNodeAST[]> {
 
     public setData(dataAst: PNodeAST[]) {
         this.dataAST = dataAst
+        this.idChange('', '')
     }
 
     public setEvent(key: string, event: (e: unknown) => void) {
         this.events.set(key, event)
+    }
+
+    private idChange(id: string, comp: string) {
+        if (this.currentKey === id) return
+        this.currentKey = id
+        if (this.events.has('idChange')) {
+            this.events.get('idChange')({ id, comp })
+        }
     }
 
     // 更新数据
@@ -79,13 +88,7 @@ export default class Page extends PNode<PNodeAST[]> {
                 ...targetAst,
                 id
             })
-            this.currentKey = id // 默认选中插入的元素
-            if (this.events.has('click')) {
-                this.events.get('click')({
-                    id: this.currentKey,
-                    comp: targetAst.comp
-                })
-            }
+            this.idChange(id, targetAst.comp)
             return
         }
         const findAst: FindAst = this.findAst(id)
@@ -116,13 +119,7 @@ export default class Page extends PNode<PNodeAST[]> {
         }
         // 如果是删除的选中的节点，清理掉并通知外界
         if (id === this.currentKey) {
-            this.currentKey = ''
-            if (this.events.has('click')) {
-                this.events.get('click')({
-                    id: '',
-                    comp: ''
-                })
-            }
+            this.idChange('', '')
         } 
     }
     
@@ -146,8 +143,8 @@ export default class Page extends PNode<PNodeAST[]> {
                     // TODO 页眉页脚点击事件
                     // click: () => {
                     //     this.currentKey = ''
-                    //     if (this.events.has('click')) {
-                    //         this.events.get('click')({
+                    //     if (this.events.has('idChange')) {
+                    //         this.events.get('idChange')({
                     //             id: null,
                     //             comp: ''
                     //         })
@@ -181,10 +178,7 @@ export default class Page extends PNode<PNodeAST[]> {
                         // 获取或设置当前选中的key
                         pageCurrentKey: (key?: string): string | void =>  {
                             if (key) {
-                                this.currentKey = key
-                                if (this.events.has('click')) {
-                                    this.events.get('click')(this.findAst(key).ast)
-                                }
+                                this.idChange(key, this.findAst(key).ast.comp)
                             } else {
                                 return this.currentKey
                             }

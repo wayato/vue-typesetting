@@ -6,11 +6,15 @@ import type { CreateElement } from "vue/types/vue"
 import { PNodeAST, PageBaseConfig } from "../type"
 import type { VNode } from "vue/types/vnode"
 import '../../style/page.less'
+import Line from "./Line"
+import Typesetting from "../Typesetting"
 
 /**
  * 页面
  */
 export default class Page extends PNode<PNodeAST[]> {
+
+    public typesetting: Typesetting
 
     // 基本配置
     private baseConfig: PageBaseConfig
@@ -31,29 +35,29 @@ export default class Page extends PNode<PNodeAST[]> {
 
     public setData(dataAst: PNodeAST[]) {
         this.dataAST = dataAst
-        this.idChange('', '')
+        this.keyChange('', '')
     }
 
     public setEvent(key: string, event: (e: unknown) => void) {
         this.events.set(key, event)
     }
 
-    private idChange(id: string, comp: string, data?: any, extraData?: any) {
-        if (this.currentKey === id) return
-        this.currentKey = id
-        if (this.events.has('idChange')) {
-            this.events.get('idChange')({ id, comp, data: data || null, extraData: extraData || null })
+    private keyChange(key: string, comp: string, data?: any, extraData?: any) {
+        if (this.currentKey === key) return
+        this.currentKey = key
+        if (this.events.has('keyChange')) {
+            this.events.get('keyChange')({ key, comp, data: data || null, extraData: extraData || null })
         }
     }
 
     // 更新数据
-    public updateData(id: string, param?: string | PNodeAST) {
+    public updateData(key: string, param?: string | PNodeAST) {
         if (typeof param === 'string') {
-            this.exchangeAst(id, param)
+            this.exchangeAst(key, param)
         } else if (param === undefined) {
-            this.deleteAst(id)
+            this.deleteAst(key)
         } else {
-            this.updateAst(id, param)
+            this.updateAst(key, param)
         }
         if (this.events.has('update')) {
             this.events.get('update')(JSON.parse(JSON.stringify(this.dataAST)))
@@ -61,9 +65,9 @@ export default class Page extends PNode<PNodeAST[]> {
     }
 
     // 找到节点
-    public findAst(id: string, fatherChildren: PNodeAST[] = this.dataAST, father?: PNodeAST): FindAst | undefined {
+    public findAst(key: string, fatherChildren: PNodeAST[] = this.dataAST, father?: PNodeAST): FindAst | undefined {
         for (let i: number = 0; i < fatherChildren.length; i++) {
-            if (fatherChildren[i].id === id) {
+            if (fatherChildren[i].key === key) {
                 return {
                     ast: fatherChildren[i],
                     fatherChildren,
@@ -72,40 +76,40 @@ export default class Page extends PNode<PNodeAST[]> {
                 }
             } else {
                 if (fatherChildren[i].children) {
-                    const result: FindAst | undefined = this.findAst(id, fatherChildren[i].children, fatherChildren[i])
+                    const result: FindAst | undefined = this.findAst(key, fatherChildren[i].children, fatherChildren[i])
                     if (result) return result
                 }
             }
         }
     }
 
-    // 找到id的节点，把更改后的数据更新进去
-    private updateAst(id: string, targetAst: PNodeAST) {
-        if (id === null) {
-            id = Utils.getUuid()
+    // 找到key的节点，把更改后的数据更新进去
+    private updateAst(key: string, targetAst: PNodeAST) {
+        if (key === null) {
+            key = Utils.getUuid()
             // page第一层插入元素
             this.dataAST.push({
                 ...targetAst,
-                id
+                key
             })
-            this.idChange(id, targetAst.comp, targetAst.data, targetAst.extraData)
+            this.keyChange(key, targetAst.comp, targetAst.data, targetAst.extraData)
             return
         }
-        const findAst: FindAst = this.findAst(id)
+        const findAst: FindAst = this.findAst(key)
         this.vue.$set(findAst.fatherChildren, findAst.index, targetAst)
     }
 
     // 交换两个节点
-    private exchangeAst(id1: string, id2: string) {
-        const findAst1: FindAst = this.findAst(id1)
-        const findAst2: FindAst = this.findAst(id2)
+    private exchangeAst(key1: string, key2: string) {
+        const findAst1: FindAst = this.findAst(key1)
+        const findAst2: FindAst = this.findAst(key2)
         this.vue.$set(findAst1.fatherChildren, findAst1.index, findAst2.ast)
         this.vue.$set(findAst2.fatherChildren, findAst2.index, findAst1.ast)
     }
 
-    // 将id节点的父节点更改为id节点的兄弟节点
-    private deleteAst(id: string) {
-        const findAst: FindAst = this.findAst(id)
+    // 将id节点的父节点更改为key节点的兄弟节点
+    private deleteAst(key: string) {
+        const findAst: FindAst = this.findAst(key)
         if (findAst.father) {
             // fatherChildren只有两个元素，!findAst.index非0即1，非1即0，便是其兄弟节点
             const sibling: PNodeAST = findAst.fatherChildren[Number(!findAst.index)]
@@ -117,40 +121,42 @@ export default class Page extends PNode<PNodeAST[]> {
             this.vue.$delete(findAst.fatherChildren, findAst.index)
         }
         // 如果是删除的选中的节点，清理掉并通知外界
-        if (id === this.currentKey) {
-            this.idChange('', '')
+        if (key === this.currentKey) {
+            this.keyChange('', '')
         } 
     }
     
     protected layout(h: CreateElement): VNode {
-        function headerFooter (): VNode {
+        function headerFooter (type: 'header' | 'footer'): VNode {
+            const height: string = (type === 'header' ? this.baseConfig?.headerHeight : this.baseConfig?.footerHeight) || 0
+            const heightIs0: boolean = /^0/.test(height.toString())
             return h('div', {
                 style: {
-                    height: '40px',
+                    height,
                     display: 'flex',
-                    border: '1px dashed #E6E6FF'
+                    // border: heightIs0 ? 0 : '1px dashed #E6E6FF',
+                    boxSizing: 'border-box'
                 }
-            }, new Array(3).fill(null).map((_, index: number) => h('div', {
-                class: {
-                    'vue-typesetting__headerFooter': true
-                },
-                style: {
-                    flex: 1,
-                    borderLeft: index === 0 ? 0 : '1px dashed #E6E6FF'
-                },
-                on: {
-                    // TODO 页眉页脚点击事件
-                    // click: () => {
-                    //     this.currentKey = ''
-                    //     if (this.events.has('idChange')) {
-                    //         this.events.get('idChange')({
-                    //             id: null,
-                    //             comp: ''
-                    //         })
-                    //     }
-                    // }
-                }
-            })))
+            }, new Array(3).fill(null).map((_, index: number) => {
+                const selectSelf: boolean = this.currentKey === `${type}-${index}`
+                return h('div', {
+                    class: {
+                        'vue-typesetting__headerFooter': true
+                    },
+                    style: {
+                        flex: 1,
+                        borderStyle: selectSelf ? 'solid' : 'dashed',
+                        borderColor: selectSelf ? Line.color : '#E6E6FF',
+                        borderWidth: heightIs0 ? 0 : (selectSelf ? '2px' : '1px'),
+                    },
+                    on: {
+                        click: (e: Event) => {
+                            Utils.stopBubble(e)
+                            this.keyChange(`${type}-${index}`, type)
+                        }
+                    }
+                })
+            }))
         }
         return h('div', {
             style: {
@@ -158,11 +164,17 @@ export default class Page extends PNode<PNodeAST[]> {
                 display: 'flex',
                 flexDirection: 'column',
                 inset: 0,
-                padding: '10px',
+                paddingLeft: this.baseConfig?.paddingLeft || '10px',
+                paddingRight: this.baseConfig?.paddingRight || '10px',
+                paddingTop: this.baseConfig?.paddingTop || '10px',
+                paddingBottom: this.baseConfig?.paddingBottom || '10px',
                 backgroundColor: this.baseConfig?.backgroundColor || '#FFF'
             },
+            on: {
+                click: () => this.keyChange('', '')
+            }
         }, [
-            headerFooter.call(this),
+            headerFooter.call(this, 'header'),
             h('div', {
                 style: {
                     flex: 1,
@@ -172,15 +184,24 @@ export default class Page extends PNode<PNodeAST[]> {
                     dragover: Utils.stopBubble,
                     drop: this.pageDrop.bind(this)
                 }
-            }, this.dataAST.map((childAst: PNodeAST) => {
+            }, this.dataAST.length === 0 ? [
+                h('div', {
+                    style: {
+                        position: 'absolute',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)'
+                    }
+                }, '可拖曳组件至此区域，如删除组件需拖曳组件脱离此区域')
+            ] : this.dataAST.map((childAst: PNodeAST) => {
                 const params = {
-                    key: childAst.id,
+                    key: childAst.key,
                     props: {
                         // 获取或设置当前选中的key
                         pageCurrentKey: (key?: string): string | void =>  {
                             if (key) {
                                 const ast: PNodeAST = this.findAst(key).ast
-                                this.idChange(key, ast.comp, ast.data, ast.extraData)
+                                this.keyChange(key, ast.comp, ast.data, ast.extraData)
                             } else {
                                 return this.currentKey
                             }
@@ -198,16 +219,16 @@ export default class Page extends PNode<PNodeAST[]> {
                         updateData: this.updateData.bind(this)
                     }
                 }
-                if (!this.PNodeMAP.get(childAst.id)) {
+                if (!this.PNodeMAP.get(childAst.key)) {
                     if (childAst.comp) {
-                        this.PNodeMAP.set(childAst.id, new Leaf())
+                        this.PNodeMAP.set(childAst.key, new Leaf())
                     } else {
-                        this.PNodeMAP.set(childAst.id, new Container())
+                        this.PNodeMAP.set(childAst.key, new Container())
                     }
                 }
-                return this.PNodeMAP.get(childAst.id).render(h, childAst, params)
+                return this.PNodeMAP.get(childAst.key).render(h, childAst, params)
             })),
-            headerFooter.call(this)
+            headerFooter.call(this, 'footer')
         ])
     }
 
@@ -223,9 +244,9 @@ export default class Page extends PNode<PNodeAST[]> {
     public outerDrop(e: DragEvent) {
         Utils.stopBubble(e)
         Utils.getConfig(e).then((res: PNodeAST) => {
-            const findAst: FindAst = this.findAst(res.id)
+            const findAst: FindAst = this.findAst(res.key)
             if (!findAst) return // 将新节点放入删除区域会触发此条件
-            this.updateData(res.id)
+            this.updateData(res.key)
         })
     }
 }

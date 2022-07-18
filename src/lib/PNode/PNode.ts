@@ -81,8 +81,8 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
         if (!Array.isArray(this.dataAST)) {
             if (this.dataAST.children) {
                 this.dataAST.children.forEach((item: PNodeAST) => {
-                    if (!this.PNodeMAP.has(item.id)) {
-                        this.PNodeMAP.delete(item.id)
+                    if (!this.PNodeMAP.has(item.key)) {
+                        this.PNodeMAP.delete(item.key)
                     }
                 })
             }

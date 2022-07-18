@@ -8,9 +8,17 @@ export default class Typesetting {
     // 当前处于的vue实例
     private static vue: Vue
 
+    // 所有组件的公有props
+    public static commonProps: { [key: string]: any } = {}
+
     // 设置vue实例
     public static setVue(vue: Vue) {
         this.vue = vue
+    }
+
+    // 设置所有组件的公有props数据
+    public static setCommonProps(data: { [key: string]: any }) {
+        this.commonProps = data
     }
 
     // 根据组件名称获取vue实例中的组件
@@ -31,6 +39,7 @@ export default class Typesetting {
         this.page = new Page()
         this.page.setConfig(pageConfig)
         this.page.setData(dataAsts)
+        this.page.typesetting = this
 
         document.documentElement.addEventListener('dragover', Utils.stopBubble)
         document.documentElement.addEventListener('drop', this.page.outerDrop.bind(this.page))
@@ -42,17 +51,17 @@ export default class Typesetting {
         this.page.setData(dataAsts)
     }
 
-    // 根据id更改数据
-    public updateData(id: string, data: unknown) {
+    // 根据key更改数据
+    public updateData(key: string, data: unknown) {
         try {
-            const { ast } = this.page.findAst(id)
+            const { ast } = this.page.findAst(key)
             if (JSON.stringify(ast.data) === JSON.stringify(data)) return // 数据相同则不执行
-            this.page.updateData(id, {
+            this.page.updateData(key, {
                 ...ast,
                 data
             })
         } catch (e) {
-            console.error('查询不到id所在节点')
+            console.error('查询不到key所在节点')
         }
     }
 
@@ -63,7 +72,7 @@ export default class Typesetting {
 
     // 渲染
     public render($el: HTMLElement) {
-        $el.style.position = 'relative' // 保证是相对定位
+        // $el.style.position = 'relative' // TODO 需要识别是否已经有定位，不能换成别的定位方式
         const component = this.page.create()
         $el.append(new component().$mount().$el)
     }

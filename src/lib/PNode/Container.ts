@@ -68,7 +68,7 @@ export default class Container extends PNode<PNodeAST> {
                     this.dragLineShow = false
                     this.isDraging = false
                     this.PNodeMAP.clear() // 清理掉Vue子类，以触发重新加载
-                    this.$emit('updateData', this.dataAST.id, {
+                    this.$emit('updateData', this.dataAST.key, {
                         ...this.dataAST,
                         p: this.dragLineProportion
                     })
@@ -82,16 +82,16 @@ export default class Container extends PNode<PNodeAST> {
                         flex: index === 0 ? this.dataAST.p : (1 - this.dataAST.p)
                     },
                     on: this.vue.$listeners,
-                    key: childAst.id
+                    key: childAst.key
                 }
-                if (!this.PNodeMAP.get(childAst.id)) {
+                if (!this.PNodeMAP.get(childAst.key)) {
                     if (childAst.comp) {
-                        this.PNodeMAP.set(childAst.id, new Leaf())
+                        this.PNodeMAP.set(childAst.key, new Leaf())
                     } else {
-                        this.PNodeMAP.set(childAst.id, new Container())
+                        this.PNodeMAP.set(childAst.key, new Container())
                     }
                 }
-                return this.PNodeMAP.get(childAst.id).render(h, childAst, params)
+                return this.PNodeMAP.get(childAst.key).render(h, childAst, params)
             }),
             // 跟随线
             h('div', {

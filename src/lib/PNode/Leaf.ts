@@ -1,98 +1,105 @@
 import PNode from "./PNode"
-import { CreateElement, Vue } from "vue/types/vue"
+import { CreateElement } from "vue/types/vue"
 import Line from "./Line"
-import Typesetting from "../Typesetting"
 import type { VNode } from "vue"
 import Utils from "../Utils"
 import { PNodeAST, Direction } from "../type"
+import Page from "./Page"
+import Vue from 'vue'
 
 /**
  * 叶子节点
  */
 export default class Leaf extends PNode<PNodeAST> {
 
-    // 当前展示提示的阴影区域 0上 1右 2下 3左
-    private tipAreaIndex: number =  -1
+    private page: Page
+    
+    protected data = {
+        dataAST: {},
+        tipAreaIndex: -1, // 当前展示提示的阴影区域 0上 1右 2下 3左
+        tipAreaAll: false, // 是否显示整个提示区域
+        dragSelf: false // 是否在拖拽自身
+    }
 
-    // 是否显示整个提示区域
-    private tipAreaAll: boolean = false
-
-    // 是否在拖拽自身
-    private dragSelf: boolean = false
+    constructor(page: Page) {
+        super()
+        this.page = page
+        this.observer = Vue.observable(this.data)
+    }
 
     // 点击
     private click(e: Event) {
         Utils.stopBubble(e)
-        this.vue.$pageCurrentKey = this.dataAST.key
+        this.page.setCurrentKey(this.observer.dataAST.key)
     }
 
     // 开始拖拽
     private dragstart(e: DragEvent) {
         Utils.setDragImg(e)
-        Utils.setConfig(e, this.dataAST)
-        this.dragSelf = true
-        this.vue.$pageInnerDraging = true
+        Utils.setConfig(e, this.observer.dataAST)
+        this.observer.dragSelf = true
+        this.page.observer.isDragInner = true
     }
 
     // 拖拽中
     // index: 拖拽至的阴影区域标识
     private dragover(e: DragEvent, index: number) {
         Utils.stopBubble(e)
-        if (this.dragSelf) return
-        if (!this.vue.$pageInnerDraging) {
-            this.tipAreaIndex = index
+        if (this.observer.dragSelf) return
+        if (!this.page.observer.isDragInner) {
+            this.observer.tipAreaIndex = index
         } else {
-            this.tipAreaAll = true
+            this.observer.tipAreaAll = true
         }
     }
 
     // 拖拽离开
     private dragleave(e: DragEvent) {
-        this.tipAreaIndex = -1
-        this.tipAreaAll = false
+        this.observer.tipAreaIndex = -1
+        this.observer.tipAreaAll = false
     }
 
     // 拖拽结束
     private dragend(e: DragEvent) {
-        this.dragSelf = false
-        this.vue.$pageInnerDraging = false
+        this.observer.dragSelf = false
+        this.page.observer.isDragInner = false
     }
 
     // 放置事件 
     // position: 放置的方位
     private drop(e: DragEvent, position: TPosition) {
         Utils.stopBubble(e)
-        this.tipAreaAll = false
+        this.observer.tipAreaAll = false
         // 拖拽的是自身则不执行放置事件
-        if (this.dragSelf) return
-        this.tipAreaIndex = -1
+        if (this.observer.dragSelf) return
+        this.observer.tipAreaIndex = -1
         Utils.getConfig(e).then((res: PNodeAST) => {
             if (res.key) {
                 // 有key代表是已经在画布上的元素进行交换
-                this.$emit('updateData', this.dataAST.key, res.key)
+                this.page.updateData(this.observer.dataAST.key, res.key)
             } else {
                 // 没有key代表新加入的元素
                 const key: string = Utils.getUuid()
                 const children = [
-                    this.dataAST,
+                    this.observer.dataAST,
                     {
                         ...res,
                         key
                     }
                 ]
-                this.$emit('updateData', this.dataAST.key, {
+                this.page.updateData(this.observer.dataAST.key, {
                     key: Utils.getUuid(),
                     dir: /left|right/.test(position) ? Direction.ROW : Direction.COLUMN,
                     p: 0.5,
                     children: /bottom|right/.test(position) ? children : children.reverse()
                 })
-                this.vue.$pageCurrentKey = key
+                this.page.setCurrentKey(key)
             }
 
         })
     }
     
-    protected layout(h: CreateElement) {
+    protected layout(h: CreateElement, vm: any) {
         const AREA_CONFIG: [TPosition, string, string][] = [
             ['top', '0 0 50% 0', 'polygon(0 0, 50% 100%, 100% 0)'],
             ['right', '0 0 0 50%', 'polygon(100% 0, 0 50%, 100% 100%)'],
@@ -108,7 +115,7 @@ export default class Leaf extends PNode<PNodeAST> {
                     background: '#FFF',
                     inset: item[1],
                     transition: 'opacity .3s',
-                    opacity: this.tipAreaIndex === index ? '0.5' : '0',
+                    opacity: vm.tipAreaIndex === index ? '0.5' : '0',
                     border: `2px dashed ${Line.color}`
                 }
             }))
@@ -136,7 +143,7 @@ export default class Leaf extends PNode<PNodeAST> {
             style: {
                 overflow: 'hidden',
                 position: 'relative',
-                flex: this.vue.flex || 1,
+                flex: this.vm.flex || 1,
                 opacity: 1
             },
             on: {
@@ -148,11 +155,8 @@ export default class Leaf extends PNode<PNodeAST> {
                 click: this.click.bind(this)
             }
         }, [
-            h(Typesetting.getComponent(this.dataAST.comp), {
-                props: {
-                    ...this.dataAST.data,
-                    ...Typesetting.commonProps
-                },
+            h(this.page.getComponent(vm.dataAST.comp), {
+                props: vm.dataAST.data,
                 style: {
                     position: 'absolute',
                     inset: 0,
@@ -173,7 +177,7 @@ export default class Leaf extends PNode<PNodeAST> {
                         position: 'absolute',
                         inset: 0,
                         border: `2px solid ${Line.color}`,
-                        opacity: this.vue.$pageCurrentKey === this.dataAST.key ? 1 : 0
+                        opacity: vm.currentKey === vm.dataAST.key ? 1 : 0
                     }
                 }),
                 // 内部拖拽时显示的线框和背景
@@ -184,7 +188,7 @@ export default class Leaf extends PNode<PNodeAST> {
                         border: `2px dashed ${Line.color}`,
                         background: '#FFF',
                         transition: 'opacity .3s',
-                        opacity: this.tipAreaAll ? 0.5 : 0
+                        opacity: vm.tipAreaAll ? 0.5 : 0
                     }
                 }),
                 ...tipArea,

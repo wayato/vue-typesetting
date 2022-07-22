@@ -7,44 +7,61 @@ import { PNodeAST, PageBaseConfig } from "../type"
 import type { VNode } from "vue/types/vnode"
 import '../../style/page.less'
 import Line from "./Line"
-import Typesetting from "../Typesetting"
+import type { Component, AsyncComponent } from "vue"
 
 /**
  * 页面
  */
 export default class Page extends PNode<PNodeAST[]> {
 
-    public typesetting: Typesetting
+    // 当前处于的vue实例
+    private vue: Vue
 
-    // 基本配置
-    private baseConfig: PageBaseConfig
-
-    // 是否正在内部拖拽
-    // 该状态为true的情况下，需要通知到所有后代节点，显示相应的样式
-    private isDragInner: boolean = false
-
-    // 当前选中的key
-    public currentKey: string = ''
+    protected data: {
+        dataAST: PNodeAST[]
+        baseConfig: PageBaseConfig // 基本配置
+        isDragInner: boolean // 是否正在内部拖拽
+        currentKey: string // 当前选中的key
+    } = {
+        dataAST: [],
+        baseConfig: null,
+        isDragInner: false,
+        currentKey: ''
+    }
 
     // 事件集合
     private events: Map<string, (e: unknown) => void> = new Map()
 
     public setConfig(baseConfig: PageBaseConfig) {
-        this.baseConfig = baseConfig
+        console.log(2222, baseConfig)
+        this.observer.baseConfig = baseConfig
+        console.log(this.observer)
     }
 
     public setData(dataAst: PNodeAST[]) {
-        this.dataAST = dataAst
+        this.observer.dataAST = dataAst
         this.keyChange('', '')
+    }
+
+    // 设置vue实例
+    public setVue(vue: Vue) {
+        this.vue = vue
     }
 
     public setEvent(key: string, event: (e: unknown) => void) {
         this.events.set(key, event)
     }
 
-    private keyChange(key: string, comp: string, data?: any, extraData?: any) {
-        if (this.currentKey === key) return
-        this.currentKey = key
+    // 获取或设置当前选中的key
+    public setCurrentKey(key?: string)  {
+        const ast: PNodeAST = this.findAst(key).ast
+        this.keyChange(key, ast.comp, ast.data, ast.extraData)
+    }
+
+    public keyChange(key: string, comp: string, data?: any, extraData?: any) {
+        if (this.observer.currentKey === key) return
+        this.observer.currentKey = key
+        console.log(2222, this.observer)
         if (this.events.has('keyChange')) {
             this.events.get('keyChange')({ key, comp, data: data || null, extraData: extraData || null })
         }
@@ -60,12 +77,12 @@ export default class Page extends PNode<PNodeAST[]> {
             this.updateAst(key, param)
         }
         if (this.events.has('update')) {
-            this.events.get('update')(JSON.parse(JSON.stringify(this.dataAST)))
+            this.events.get('update')(JSON.parse(JSON.stringify(this.observer.dataAST)))
         }
     }
 
     // 找到节点
-    public findAst(key: string, fatherChildren: PNodeAST[] = this.dataAST, father?: PNodeAST): FindAst | undefined {
+    public findAst(key: string, fatherChildren: PNodeAST[] = this.observer.dataAST, father?: PNodeAST): FindAst | undefined {
         for (let i: number = 0; i < fatherChildren.length; i++) {
             if (fatherChildren[i].key === key) {
                 return {
@@ -88,7 +105,7 @@ export default class Page extends PNode<PNodeAST[]> {
         if (key === null) {
             key = Utils.getUuid()
             // page第一层插入元素
-            this.dataAST.push({
+            this.observer.dataAST.push({
                 ...targetAst,
                 key
             })
@@ -114,21 +131,21 @@ export default class Page extends PNode<PNodeAST[]> {
             // fatherChildren只有两个元素，!findAst.index非0即1，非1即0，便是其兄弟节点
             const sibling: PNodeAST = findAst.fatherChildren[Number(!findAst.index)]
             Object.assign(findAst.father, sibling)
-            delete findAst.father.children
-            delete findAst.father.p
-            delete findAst.father.dir
+            if (!sibling.children) delete findAst.father.children
+            if (!sibling.p) delete findAst.father.p
+            if (!sibling.dir) delete findAst.father.dir
         } else {
             this.vue.$delete(findAst.fatherChildren, findAst.index)
         }
         // 如果是删除的选中的节点，清理掉并通知外界
-        if (key === this.currentKey) {
+        if (key === this.observer.currentKey) {
             this.keyChange('', '')
         } 
     }
     
-    protected layout(h: CreateElement): VNode {
+    protected layout(h: CreateElement, vm: any): VNode {
         function headerFooter (type: 'header' | 'footer'): VNode {
-            const height: string = (type === 'header' ? this.baseConfig?.headerHeight : this.baseConfig?.footerHeight) || 0
+            const height: string = (type === 'header' ? vm.baseConfig?.headerHeight : vm.baseConfig?.footerHeight) || 0
             const heightIs0: boolean = /^0/.test(height.toString())
             return h('div', {
                 style: {
@@ -138,7 +155,7 @@ export default class Page extends PNode<PNodeAST[]> {
                     boxSizing: 'border-box'
                 }
             }, new Array(3).fill(null).map((_, index: number) => {
-                const selectSelf: boolean = this.currentKey === `${type}-${index}`
+                const selectSelf: boolean = vm.currentKey === `${type}-${index}`
                 return h('div', {
                     class: {
                         'vue-typesetting__headerFooter': true
@@ -152,6 +169,8 @@ export default class Page extends PNode<PNodeAST[]> {
                     on: {
                         click: (e: Event) => {
                             Utils.stopBubble(e)
+                            this.observer.currentKey = `${type}-${index}`
+                            console.log(`${type}-${index}`, vm, this.observer)
                             this.keyChange(`${type}-${index}`, type)
                         }
                     }
@@ -164,11 +183,11 @@ export default class Page extends PNode<PNodeAST[]> {
                 display: 'flex',
                 flexDirection: 'column',
                 inset: 0,
-                paddingLeft: this.baseConfig?.paddingLeft || '10px',
-                paddingRight: this.baseConfig?.paddingRight || '10px',
-                paddingTop: this.baseConfig?.paddingTop || '10px',
-                paddingBottom: this.baseConfig?.paddingBottom || '10px',
-                backgroundColor: this.baseConfig?.backgroundColor || '#FFF'
+                paddingLeft: vm.baseConfig?.paddingLeft || '10px',
+                paddingRight: vm.baseConfig?.paddingRight || '10px',
+                paddingTop: vm.baseConfig?.paddingTop || '10px',
+                paddingBottom: vm.baseConfig?.paddingBottom || '10px',
+                backgroundColor: vm.baseConfig?.backgroundColor || '#FFF'
             },
             on: {
                 click: () => this.keyChange('', '')
@@ -184,7 +203,7 @@ export default class Page extends PNode<PNodeAST[]> {
                     dragover: Utils.stopBubble,
                     drop: this.pageDrop.bind(this)
                 }
-            }, this.dataAST.length === 0 ? [
+            }, vm.dataAST.length === 0 ? [
                 h('div', {
                     style: {
                         position: 'absolute',
@@ -192,38 +211,19 @@ export default class Page extends PNode<PNodeAST[]> {
                         top: '50%',
                         transform: 'translate(-50%, -50%)'
                     }
-                }, '可拖曳组件至此区域，如删除组件需拖曳组件脱离此区域')
-            ] : this.dataAST.map((childAst: PNodeAST) => {
+                }, this.observer.currentKey + '355')
+            ] : vm.dataAST.map((childAst: PNodeAST) => {
                 const params = {
                     key: childAst.key,
                     props: {
-                        // 获取或设置当前选中的key
-                        pageCurrentKey: (key?: string): string | void =>  {
-                            if (key) {
-                                const ast: PNodeAST = this.findAst(key).ast
-                                this.keyChange(key, ast.comp, ast.data, ast.extraData)
-                            } else {
-                                return this.currentKey
-                            }
-                        },
-                        // 获取或设置内部正在拖拽的状态
-                        pageInnerDraging: (status?: boolean): boolean | void => {
-                            if (typeof status === 'boolean') {
-                                this.isDragInner = status
-                            } else {
-                                return this.isDragInner
-                            }
-                        }
-                    },
-                    on: {
-                        updateData: this.updateData.bind(this)
+                        currentKey: vm.currentKey
                     }
                 }
                 if (!this.PNodeMAP.get(childAst.key)) {
                     if (childAst.comp) {
-                        this.PNodeMAP.set(childAst.key, new Leaf())
+                        this.PNodeMAP.set(childAst.key, new Leaf(this))
                     } else {
-                        this.PNodeMAP.set(childAst.key, new Container())
+                        this.PNodeMAP.set(childAst.key, new Container(this))
                     }
                 }
                 return this.PNodeMAP.get(childAst.key).render(h, childAst, params)
@@ -248,6 +248,11 @@ export default class Page extends PNode<PNodeAST[]> {
             if (!findAst) return // 将新节点放入删除区域会触发此条件
             this.updateData(res.key)
         })
+    }
+
+    // 根据组件名称获取vue实例中的组件
+    public getComponent(name: string): Component<any, any, any, any> | AsyncComponent<any, any, any, any> | string {
+        return this.vue.$options.components[name] || 'div'
     }
 }
 

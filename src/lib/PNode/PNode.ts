@@ -5,14 +5,18 @@ import { PNodeAST } from '../type'
 
 export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
 
-    // 抽象方法，每个PNode需要实现的布局
-    protected abstract layout(h: CreateElement): VNode
+    // 抽象属性，每个PNode需要实现的响应式数据
+    protected abstract data: any
 
-    public vue: Vue & {
+    // 抽象方法，每个PNode需要实现的布局
+    protected abstract layout(h: CreateElement, vm: any): VNode
+
+    public observer: any = {}
+
+    // 该节点的vue实例
+    public vm: Vue & {
         [key: string]: any
     }
-
-    protected dataAST: T
 
     protected rect: DOMRect
 
@@ -23,21 +27,26 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
     private vueCtr: VueConstructor = null
 
     // 创建Vue的子类
-    public create(keys: string[] = []): VueConstructor {
+    public create(propKeys: string[] = [], dataAST: T): VueConstructor {
         if (this.vueCtr) return this.vueCtr // 如果已经有该类，不需要二次创建
+        this.data.dataAST = dataAST
         const _this = this
+        const computed = this.createComputed(Object.keys(this.data))
+        if ('appendComputed' in this) { // 如果有额外的计算属性，通过该方法额外添加
+            Object.assign(computed, (<any>this).appendComputed())
+        }
         this.vueCtr = Vue.extend({
-            props: keys,
-            data: () => this,
-            computed: this.createComputed(keys),
+            props: propKeys,
+            computed,
             mounted() {
                 this.$nextTick(() => {
                     if (this.$el) _this.rect = this.$el.getBoundingClientRect()
                 })
             },
+            watch: this.createWatch(Object.keys(this.data)),
             render(h: CreateElement) {
-                _this.vue = this
-                return _this.layout(h)
+                _this.vm = this
+                return _this.layout(h, this)
             }
         })
         
@@ -46,41 +55,47 @@ export default abstract class PNode<T extends PNodeAST | PNodeAST[]> {
 
     // 将props转成$开头的计算属性
     private createComputed(keys: string[]) {
-        const computed: {
-            [key: string]: {
-                get: () => any,
-                set: (val: any) => void
-            }
-        } = {}
+        const computed: any = {}
         keys.forEach((key: string) => {
-            computed['$' + key] = {
-                get() {
-                    return this[key]()
-                },
-                set(val: any) {
-                    this[key](val)
+            computed[key] = {
+                get: () => this.observer[key],
+                set: (val: any) => {
+                    this.observer[key] = val
                 }
             }
         })
         return computed
     }
 
+    // 将props转成$开头的计算属性
+    private createWatch(keys: string[]) {
+        const watch: any = {}
+        keys.forEach((key: string) => {
+            watch[key] = {
+                handler(val: any) {
+                    console.log(key)
+                    this[key] = val
+                }
+            }
+        })
+        return watch
+    }
+
     public render(h: CreateElement, dataAST: T, config?: any) {
-        this.dataAST = dataAST
         this.clearPNodeMAP()
-        const keys: string[] = config ? Object.keys(config.props) : []
-        return h(this.create(keys), config)
+        const keys: string[] = config.props ? Object.keys(config.props) : []
+        return h(this.create(keys, dataAST), config)
     }
 
     protected $emit(eventName: string, ...arg: any[]) {
-        this.vue.$emit(eventName, ...arg)
+        this.vm.$emit(eventName, ...arg)
     }
 
     // 当容器内的节点发生变化，需要清除用不到的
     private clearPNodeMAP() {
-        if (!Array.isArray(this.dataAST)) {
-            if (this.dataAST.children) {
-                this.dataAST.children.forEach((item: PNodeAST) => {
+        if (!Array.isArray(this.observer.dataAST)) {
+            if (this.observer.dataAST.children) {
+                this.observer.dataAST.children.forEach((item: PNodeAST) => {
                     if (!this.PNodeMAP.has(item.key)) {
                         this.PNodeMAP.delete(item.key)
                     }

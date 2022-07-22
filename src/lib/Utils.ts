@@ -14,24 +14,24 @@ export default class Utils {
     }
 
     // 设置拖拽图像
-    public static setDragImg(e: DragEvent) {
-        e.dataTransfer.setDragImage(DRAG_IMG, 0, 0)
-    }
+    // public static setDragImg(e: DragEvent) {
+    //     e.dataTransfer.setDragImage(DRAG_IMG, 0, 0)
+    // }
 
-    // 设置拖拽数据
-    public static setConfig(e: DragEvent, data: any) {
-        e.dataTransfer.setData('config', JSON.stringify(data))
-    }
+    // // 设置拖拽数据
+    // public static setConfig(e: MouseEvent, data: any) {
+    //     e.dataTransfer.setData('config', JSON.stringify(data))
+    // }
 
-    // 获取拖拽数据
-    public static getConfig(e: DragEvent): Promise<any> {
-        return new Promise((resolve, reject) => {
-            const configStr = e.dataTransfer.getData('config')
-            if (configStr !== '') {
-                resolve(JSON.parse(configStr))
-            } else {
-                reject()
-            }
-        })
-    }
+    // // 获取拖拽数据
+    // public static getConfig(e: MouseEvent): Promise<any> {
+    //     return new Promise((resolve, reject) => {
+    //         const configStr = e.dataTransfer.getData('config')
+    //         if (configStr !== '') {
+    //             resolve(JSON.parse(configStr))
+    //         } else {
+    //             reject()
+    //         }
+    //     })
+    // }
 }

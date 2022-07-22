@@ -22,16 +22,30 @@ export type PageTitleType = {
     underline: boolean // 是否下划线
 }
 
-export type PNodeAST = {
+// export type PNodeAST = {
+//     key: string // 唯一标识，用于查找更新
+//     comp?: string // 组件名称
+//     data?: any // 需要传入组件的参数
+//     extraData?: any // 额外的一些需要记录的参数
+//     dir?: Direction // 排列方式 水平row 垂直column
+//     p?: number // 容器节点的元素占比
+//     float?: boolean // 是否是悬浮排列，当为true时，dir、p属性没有作用，layout需要使用
+//     layout?: any // 组件位置，只有在悬浮排列的情况下才有
+//     children?: PNodeAST[]
+// }
+
+export type ContianerAst = {
     key: string // 唯一标识，用于查找更新
-    comp?: string // 组件名称
-    data?: any // 需要传入组件的参数
+    dir: Direction // 排列方式 水平row 垂直column
+    p: number // 容器节点的元素占比
+    children: Array<ContianerAst | LeafAst>
+}
+
+export type LeafAst = {
+    key: string // 唯一标识，用于查找更新
+    comp: string // 组件名称
+    props?: any // 需要传入组件的参数
     extraData?: any // 额外的一些需要记录的参数
-    dir?: Direction // 排列方式 水平row 垂直column
-    p?: number // 容器节点的元素占比
-    float?: boolean // 是否是悬浮排列，当为true时，dir、p属性没有作用，layout需要使用
-    layout?: any // 组件位置，只有在悬浮排列的情况下才有
-    children?: PNodeAST[]
 }
 
 export enum Direction {

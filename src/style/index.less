@@ -1,0 +1,27 @@
+
+.vue-typesetting {
+    &__container {
+        &--line {
+            opacity: 0;
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+    &__leaf {
+        &--clip {
+            opacity: 0;
+            &:hover {
+                & + div {
+                    opacity: 0.5 !important;
+                }
+            }
+        }
+        &--all {
+            opacity: 0;
+            &:hover {
+                opacity: 0.5 !important;
+            }
+        }
+    }
+}

@@ -1,9 +1,7 @@
 import Vue, { VNode } from 'vue'
 import Line from './Line'
 import Utils from './Utils'
-import '../style/leaf.less'
 import Global from './Global'
-import DragImg from './DragImg'
 import { Direction, LeafAst } from './type'
 
 
@@ -141,6 +139,9 @@ export default Vue.component('typesetting-leaf', {
             }))
         })
         return h('div', {
+            class: {
+                'vue-typesetting__leaf': true
+            },
             style: {
                 overflow: 'hidden',
                 position: 'relative',

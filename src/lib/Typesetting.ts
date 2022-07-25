@@ -131,6 +131,9 @@ export default class Typesetting {
                 //     }))
                 // }
                 return h('div', {
+                    class: {
+                        'vue-typesetting': true
+                    },
                     style: {
                         position: 'absolute',
                         display: 'flex',

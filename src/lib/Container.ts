@@ -4,24 +4,6 @@ import Line from './Line'
 import { Direction, ContianerAst, LeafAst } from './type'
 // import { Direction } from './type'
 import Utils from './Utils'
-import '../style/container.less'
-
-// export default class Container {
-
-//     public state = Vue.observable({
-//         dataAST: {},
-//     })
-//     // 渲染函数
-//     public render($el: HTMLElement): void {
-//         const that = this.state
-//         const component = Vue.extend({
-//             render(h: CreateElement): VNode {
-
-//             }
-//         })
-//     }
-// }
-
 
 const Container = Vue.component('typesetting-container', {
     props: {
@@ -139,7 +121,7 @@ const Container = Vue.component('typesetting-container', {
                     draggable: false
                 },
                 class: {
-                    'vue-typesetting__container-split-line': true
+                    'vue-typesetting__container--line': true
                 },
                 style: {
                     position: 'absolute',
@@ -152,6 +134,7 @@ const Container = Vue.component('typesetting-container', {
                     mousedown: (e: MouseEvent) => {
                         Utils.stopBubble(e)
                         this.isDraging = true
+                        this.rect = this.$el.getBoundingClientRect()
                     },
                     mouseup: (e: MouseEvent) => {
                         this.isDraging = false

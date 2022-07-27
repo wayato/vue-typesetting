@@ -1,14 +1,13 @@
 
-import Vue, { h } from 'vue'
-import type { CreateElement, VueConstructor } from 'vue/types/vue'
+import Vue from 'vue'
+import type { CreateElement } from 'vue/types/vue'
 import { VNode } from "vue/types/umd"
 import Utils from "./Utils"
 import Container from './Container'
 import Leaf from './Leaf'
 import DragImg from './DragImg'
-import { ContianerAst, LeafAst, PageBaseConfig } from './type'
 import Global from './Global'
-
+import HeaderFooter from './HeaderFooter'
 
 export default class Typesetting {
 
@@ -97,39 +96,6 @@ export default class Typesetting {
         const state = that.state
         const component = Vue.extend({
             render(h: CreateElement): VNode {
-                // function headerFooter (type: 'header' | 'footer'): VNode {
-                //     const height: string = (type === 'header' ? that.pageBaseConfig?.headerHeight : that.pageBaseConfig?.footerHeight) || 0
-                //     const heightIs0: boolean = /^0/.test(height.toString())
-                //     return h('div', {
-                //         style: {
-                //             height,
-                //             display: 'flex',
-                //             // border: heightIs0 ? 0 : '1px dashed #E6E6FF',
-                //             boxSizing: 'border-box'
-                //         }
-                //     }, new Array(3).fill(null).map((_, index: number) => {
-                //         const selectSelf: boolean = vm.currentKey === `${type}-${index}`
-                //         return h('div', {
-                //             class: {
-                //                 'vue-typesetting__headerFooter': true
-                //             },
-                //             style: {
-                //                 flex: 1,
-                //                 borderStyle: selectSelf ? 'solid' : 'dashed',
-                //                 borderColor: selectSelf ? Line.color : '#E6E6FF',
-                //                 borderWidth: heightIs0 ? 0 : (selectSelf ? '2px' : '1px'),
-                //             },
-                //             on: {
-                //                 click: (e: Event) => {
-                //                     Utils.stopBubble(e)
-                //                     this.observer.currentKey = `${type}-${index}`
-                //                     console.log(`${type}-${index}`, vm, this.observer)
-                //                     this.keyChange(`${type}-${index}`, type)
-                //                 }
-                //             }
-                //         })
-                //     }))
-                // }
                 return h('div', {
                     class: {
                         'vue-typesetting': true
@@ -139,11 +105,11 @@ export default class Typesetting {
                         display: 'flex',
                         flexDirection: 'column',
                         inset: 0,
-                        paddingLeft: state.pageBaseConfig?.paddingLeft || '10px',
-                        paddingRight: state.pageBaseConfig?.paddingRight || '10px',
+                        paddingLeft: state.pageBaseConfig?.left_margin || '10px',
+                        paddingRight: state.pageBaseConfig?.right_margin || '10px',
                         paddingTop: state.pageBaseConfig?.paddingTop || '10px',
                         paddingBottom: state.pageBaseConfig?.paddingBottom || '10px',
-                        backgroundColor: state.pageBaseConfig?.backgroundColor || '#FFF',
+                        backgroundColor: state.pageBaseConfig?.bg_color || '#FFF',
                         '-webkit-user-select': 'none',
                         '-moz-user-select': 'none',
                         '-ms-user-select': 'none',
@@ -162,7 +128,14 @@ export default class Typesetting {
                         }
                     }
                 }, [
-                    // headerFooter.call(this, 'header'),
+                    h(HeaderFooter, {
+                        props: {
+                            type: 'header',
+                            height: state.pageBaseConfig?.header_height || 0,
+                            changeKey: that.changeKey.bind(that),
+                            config: state.pageBaseConfig.headerConfig
+                        }
+                    }),
                     h('div', {
                         style: {
                             flex: 1,
@@ -200,7 +173,15 @@ export default class Typesetting {
                         } else {
                             return h(Container, params)
                         }
-                    }))
+                    })),
+                    h(HeaderFooter, {
+                        props: {
+                            type: 'footer',
+                            height: state.pageBaseConfig?.footer_height || 0,
+                            changeKey: that.changeKey.bind(that),
+                            config: state.pageBaseConfig.footerConfig
+                        }
+                    })
                 ])
             }
         })
@@ -219,15 +200,14 @@ export default class Typesetting {
         this.handleEvent('update', JSON.parse(JSON.stringify(this.state.dataAST)))
     }
 
-    // 更新props
-    public updateProps(key: string, props: unknown) {
+    // 根据name修改特定的数据
+    public updateByName(key: string, name: string, data: unknown) {
         try {
             const { ast } = this.findAst(key)
-            if (JSON.stringify((<LeafAst>ast).props) === JSON.stringify(props)) return // 数据相同则不执行
-            this.updateData(key, {
-                ...ast,
-                props
-            })
+            if (JSON.stringify((<any>ast)[name]) != JSON.stringify(data)) {
+                Vue.prototype.$set(ast, name, JSON.parse(JSON.stringify(data)))
+            } // 数据相同则不执行
+            this.handleEvent('update', JSON.parse(JSON.stringify(this.state.dataAST)))
         } catch (e) {
             console.error('查询不到key所在节点')
         }
@@ -255,9 +235,6 @@ export default class Typesetting {
     // 找到key的节点，把更改后的数据更新进去
     private updateAst(key: string, targetAst: ContianerAst | LeafAst) {
         if (key === null) {
-            if (Global.debug) {
-                console.log(`%c **新增组件，层级变化，会导致相关组件重渲** `, "color: red")
-            }
             targetAst = <LeafAst>targetAst
             key = Utils.getUuid()
             const newLeaf: LeafAst = {
@@ -283,9 +260,6 @@ export default class Typesetting {
 
     // 将id节点的父节点更改为key节点的兄弟节点
     private deleteAst(key: string) {
-        if (Global.debug) {
-            console.log(`%c **移除组件，层级变化，会导致相关组件重渲** `, "color: red")
-        }
         const findAst: FindAst = this.findAst(key)
         if (findAst.father) {
             // fatherChildren只有两个元素，!findAst.index非0即1，非1即0，便是其兄弟节点

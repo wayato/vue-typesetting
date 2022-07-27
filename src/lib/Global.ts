@@ -1,5 +1,4 @@
 import Vue from 'vue'
-import { LeafAst } from './type'
 
 export default class Global {
     public static state = Vue.observable({

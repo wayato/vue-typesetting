@@ -2,7 +2,6 @@ import Vue, { VNode } from 'vue'
 import Line from './Line'
 import Utils from './Utils'
 import Global from './Global'
-import { Direction, LeafAst } from './type'
 
 
 const AREA_CONFIG: [TPosition, string, string][] = [
@@ -36,14 +35,9 @@ export default Vue.component('typesetting-leaf', {
             extraProps: null // 额外的props，通过执行aop事件获得
         }
     },
-    mounted() {
-        if (Global.debug) {
-            console.log(`%c **渲染组件** ${this.dataAST.key}`, "color: green")
-        }
-    },
     watch: {
         'dataAST.props': {
-            handler(newValue, oldValue) { 
+            handler(newValue, oldValue) {
                 if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return
                 const obj = Global.propsAop(JSON.parse(JSON.stringify(this.dataAST)))
                 if (typeof obj === 'object') {
@@ -54,12 +48,6 @@ export default Vue.component('typesetting-leaf', {
                                 return
                             }
                             this.extraProps = res
-                            if (Global.debug) {
-                                console.log(`%c **props** ${this.dataAST.key}：`, "color: green", JSON.parse(JSON.stringify({
-                                    ...this.dataAST.props,
-                                    ...this.extraProps
-                                })))
-                            }
                         })
                     } else {
                         this.extraProps = obj
@@ -103,9 +91,6 @@ export default Vue.component('typesetting-leaf', {
                 on: {
                     mouseup: (e: Event) => {
                         if (Global.state.addDraging) { // 新增
-                            if (Global.debug) {
-                                console.log(`%c **新增组件，层级变化，会导致相关组件重渲** `, "color: red")
-                            }
                             const key: string = Utils.getUuid()
                             const newLeaf: LeafAst = {
                                 ...Global.getDragData(),
@@ -117,7 +102,7 @@ export default Vue.component('typesetting-leaf', {
                             ]
                             this.updateData(this.dataAST.key, {
                                 key: Utils.getUuid(),
-                                dir: /left|right/.test(item[0]) ? Direction.ROW : Direction.COLUMN,
+                                dir: /left|right/.test(item[0]) ? 1 : 2,
                                 p: 0.5,
                                 children: /bottom|right/.test(item[0]) ? children : children.reverse()
                             })

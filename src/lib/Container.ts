@@ -1,8 +1,6 @@
 import Vue from 'vue'
 import Leaf from './Leaf'
 import Line from './Line'
-import { Direction, ContianerAst, LeafAst } from './type'
-// import { Direction } from './type'
 import Utils from './Utils'
 
 const Container = Vue.component('typesetting-container', {
@@ -36,8 +34,8 @@ const Container = Vue.component('typesetting-container', {
         })
     },
     render(h) {
-        const getLine = (direction: Direction, proportion: number) => {
-            if (direction === Direction.COLUMN) {
+        const getLine = (direction: 1 | 2, proportion: number) => {
+            if (direction === 2) {
                 return {
                     left: 0,
                     right: 0,
@@ -64,13 +62,13 @@ const Container = Vue.component('typesetting-container', {
                 width: '100%',
                 height: '100%',
                 flex: this.flex,
-                flexDirection: this.dataAST.dir
+                flexDirection: this.dataAST.dir === 1 ? 'row' : 'column'
             },
             on: {
                 drop: Utils.stopBubble,
                 mousemove: (e: MouseEvent) => {
                     if (!this.isDraging) return
-                    if (this.dataAST.dir === Direction.ROW) {
+                    if (this.dataAST.dir === 1) {
                         this.dragLineProportion = Number(((e.clientX - this.rect.left) / this.rect.width).toFixed(2))
                     } else {
                         this.dragLineProportion = Number(((e.clientY - this.rect.top) / this.rect.height).toFixed(2))

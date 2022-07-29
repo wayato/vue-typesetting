@@ -203,18 +203,24 @@ export default class Typesetting {
     // 根据name修改特定的数据
     public updateByName(key: string, name: string, data: unknown) {
         try {
-            const { ast } = this.findAst(key)
-            if (JSON.stringify((<any>ast)[name]) != JSON.stringify(data)) {
-                Vue.prototype.$set(ast, name, JSON.parse(JSON.stringify(data)))
-            } // 数据相同则不执行
-            this.handleEvent('update', JSON.parse(JSON.stringify(this.state.dataAST)))
+            let ast: ContianerAst | LeafAst = null
+            if (/header|footer/.test(key)) {
+                console.log('页眉页脚逻辑待补充')
+            } else {
+                ast = this.findAst(key).ast
+                if (JSON.stringify((<any>ast)[name]) != JSON.stringify(data)) {
+                    Vue.prototype.$set(ast, name, JSON.parse(JSON.stringify(data)))
+                } // 数据相同则不执行
+                this.handleEvent('update', JSON.parse(JSON.stringify(this.state.dataAST)))
+            }
         } catch (e) {
             console.error('查询不到key所在节点')
         }
     }
 
     // 找到节点
-    public findAst(key: string, fatherChildren: Array<ContianerAst | LeafAst> = this.state.dataAST, father?: ContianerAst): FindAst | undefined {
+    public findAst(key: string, fatherChildren?: Array<ContianerAst | LeafAst>, father?: ContianerAst): FindAst | undefined {
+        if (fatherChildren === undefined) fatherChildren = this.state.dataAST
         for (let i: number = 0; i < fatherChildren.length; i++) {
             if (fatherChildren[i].key === key) {
                 return {

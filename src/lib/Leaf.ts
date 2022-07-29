@@ -1,7 +1,7 @@
 import Vue, { VNode } from 'vue'
 import Line from './Line'
 import Utils from './Utils'
-import Global from './Global'
+import DragImg from './DragImg'
 
 
 const AREA_CONFIG: [TPosition, string, string][] = [
@@ -26,6 +26,9 @@ export default Vue.component('typesetting-leaf', {
             type: Number,
             default: 1
         },
+        global: {
+            type: Object
+        }
     },
     data() {
         return {
@@ -39,7 +42,7 @@ export default Vue.component('typesetting-leaf', {
         'dataAST.props': {
             handler(newValue, oldValue) {
                 if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return
-                const obj = Global.propsAop(JSON.parse(JSON.stringify(this.dataAST)))
+                const obj = this.global.propsAop(JSON.parse(JSON.stringify(this.dataAST)))
                 if (typeof obj === 'object') {
                     if (typeof obj.then === 'function') {
                         obj.then((res: any) => {
@@ -65,7 +68,7 @@ export default Vue.component('typesetting-leaf', {
     computed: {
         // 是否该渲染组件了
         isRender() {
-            return (!!Global.propsAop && !!this.extraProps) || !Global.propsAop
+            return (!!this.global.propsAop && !!this.extraProps) || !this.global.propsAop
         },
         compProps() {
             return {
@@ -79,7 +82,7 @@ export default Vue.component('typesetting-leaf', {
         AREA_CONFIG.forEach((item: [TPosition, string, string], index: number) => {
             allArea.push(h('div', {
                 class: {
-                    'vue-typesetting__leaf--clip': Global.state.addDraging
+                    'vue-typesetting__leaf--clip': this.global.addDraging
                 },
                 style: {
                     position: 'absolute',
@@ -90,10 +93,10 @@ export default Vue.component('typesetting-leaf', {
                 },
                 on: {
                     mouseup: (e: Event) => {
-                        if (Global.state.addDraging) { // 新增
+                        if (this.global.addDraging) { // 新增
                             const key: string = Utils.getUuid()
                             const newLeaf: LeafAst = {
-                                ...Global.getDragData(),
+                                ...DragImg.dragData,
                                 key
                             }
                             const children = [
@@ -135,20 +138,27 @@ export default Vue.component('typesetting-leaf', {
             },
             on: {
                 mousedown: (e: MouseEvent) => {
-                    Global.state.updateDraging = true
-                    Global.state.isInner = true
-                    Global.setDragData(this.dataAST)
+                    this.global.updateDraging = true
+                    this.global.isInner = true
+                    DragImg.show(e.x, e.y, this.dataAST, () => {
+                        this.global.updateDraging = false
+                        if (this.global.isInner === false) {
+                            this.updateData(this.dataAST.key)
+                        }
+                    })
                     this.dragSelf = true
                 },
                 mouseup: () => {
                     this.dragSelf = false
                 },
                 click: () => {
-                    this.changeKey(this.dataAST)
+                    if (!this.global.updateDraging) {
+                        this.changeKey(this.dataAST)
+                    }
                 }
             }
         }, [
-            Global.debug ? h('div', {
+            this.global.debug ? h('div', {
                 style: {
                     position: 'absolute',
                     right: 0,
@@ -186,7 +196,7 @@ export default Vue.component('typesetting-leaf', {
                     }
                 }, '真实传入的props'),
             ]) : null,
-            this.isRender ? h(Global.getComponent(this.dataAST.comp), {
+            this.isRender ? h(this.global.hostVue.$options.components[this.dataAST.comp] || 'div', {
                 props: this.compProps,
                 style: {
                     position: 'absolute',
@@ -205,7 +215,7 @@ export default Vue.component('typesetting-leaf', {
                 // 内部拖拽时显示的线框和背景
                 h('div', {
                     class: {
-                        'vue-typesetting__leaf--all': Global.state.updateDraging
+                        'vue-typesetting__leaf--all': this.global.updateDraging
                     },
                     style: {
                         position: 'absolute',
@@ -213,14 +223,14 @@ export default Vue.component('typesetting-leaf', {
                         border: `2px dashed ${Line.color}`,
                         background: '#FFF',
                         transition: 'opacity .3s',
-                        zIndex: (Global.state.updateDraging && !this.dragSelf) ? 15 : 1,
+                        zIndex: (this.global.updateDraging && !this.dragSelf) ? 15 : 1,
                         opacity: 0,
                     },
                     on: {
                         mouseup: () => {
-                            if (this.dataAST.key === Global.getDragData().key) return
-                            if (Global.state.updateDraging) { // 移动
-                                this.updateData(this.dataAST.key, Global.getDragData().key)
+                            if (this.dataAST.key === DragImg.dragData?.key) return
+                            if (this.global.updateDraging) { // 移动
+                                this.updateData(this.dataAST.key, DragImg.dragData?.key)
                             }
                         }
                     },
@@ -231,7 +241,7 @@ export default Vue.component('typesetting-leaf', {
                         position: 'absolute',
                         inset: 0,
                         border: `2px solid ${Line.color}`,
-                        opacity: Global.state.currentKey === this.dataAST.key ? 1 : 0,
+                        opacity: this.global.currentKey === this.dataAST.key ? 1 : 0,
                         zIndex: 0
                     }
                 }),

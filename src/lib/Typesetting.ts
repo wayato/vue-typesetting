@@ -6,44 +6,26 @@ import Utils from "./Utils"
 import Container from './Container'
 import Leaf from './Leaf'
 import DragImg from './DragImg'
-import Global from './Global'
 import HeaderFooter from './HeaderFooter'
 
 export default class Typesetting {
 
-    // 宿主元素
-    public hostELement: HTMLElement
-    constructor() {
-        document.documentElement.addEventListener('mousemove', (e) => {
-            if (Global.state.addDraging || Global.state.updateDraging) {
-                DragImg.show(e.x, e.y)
-            }
-        })
-        document.documentElement.addEventListener('mouseup', () => {
-            if (Global.state.updateDraging && !Global.state.isInner) { // 移除元素
-                this.updateData(Global.getDragData().key)
-            }
-            DragImg.hide()
-            Global.state.addDraging = false
-            Global.state.updateDraging = false
-        })
-    }
-
     // 设置拖拽数据
     public setDragData(e: DragEvent, data: any) {
-        Global.setDragData(data)
-        Global.state.addDraging = true
-        DragImg.show(e.x, e.y)
+        this.state.global.addDraging = true
+        DragImg.show(e.x, e.y, data, () => {
+            this.state.global.addDraging = false
+        })
     }
 
     // 设置渲染typesetting的宿主vue
     public setVue(hostVue: Vue): void {
-        Global.hostVue = hostVue
+        this.state.global.hostVue = hostVue
     }
 
     // 开启debug模式
     public setDebug(debug: boolean): void {
-        Global.debug = debug
+        this.state.global.debug = debug
     }
 
     // 页面的基本配置
@@ -58,7 +40,7 @@ export default class Typesetting {
 
     // 设置组件传入props之前的aop事件
     public setPropsAOP(event: any) {
-        Global.setPropsAOP(event)
+        this.state.global.propsAop = event
     }
 
     // 监听事件
@@ -80,18 +62,26 @@ export default class Typesetting {
                 comp: ''
             }
         }
-        if (Global.state.currentKey === data.key) return
-        Global.state.currentKey = data.key
+        if (this.state.global.currentKey === data.key) return
+        this.state.global.currentKey = data.key
         this.handleEvent('keyChange', JSON.parse(JSON.stringify(data)))
     }
 
     public state = Vue.observable({
         dataAST: [],
-        pageBaseConfig: <PageBaseConfig>{}
+        pageBaseConfig: <PageBaseConfig>{},
+        global: {
+            hostVue: null, // 宿主vue实例
+            debug: false, // 是否开启debug模式
+            propsAop: null, // 组件渲染前置事件
+            currentKey: '', // 当前选中的key
+            addDraging: false, // 是否正在新增拖拽
+            updateDraging: false, // 是否正在更新拖拽
+            isInner: true // 鼠标是否是处于编辑区域
+        }
     })
     // 渲染函数
     public render($el: HTMLElement): void {
-        this.hostELement = $el
         const that = this
         const state = that.state
         const component = Vue.extend({
@@ -117,13 +107,13 @@ export default class Typesetting {
                     },
                     on: {
                         mouseleave: () => {
-                            if (Global.state.updateDraging) {
-                                Global.state.isInner = false
+                            if (state.global.updateDraging) {
+                                state.global.isInner = false
                             }
                         },
                         mouseenter: () => {
-                            if (Global.state.updateDraging) {
-                                Global.state.isInner = true
+                            if (state.global.updateDraging) {
+                                state.global.isInner = true
                             }
                         }
                     }
@@ -133,7 +123,8 @@ export default class Typesetting {
                             type: 'header',
                             height: state.pageBaseConfig?.header_height || 0,
                             changeKey: that.changeKey.bind(that),
-                            config: state.pageBaseConfig.headerConfig
+                            config: state.pageBaseConfig.headerConfig,
+                            global: state.global,
                         }
                     }),
                     h('div', {
@@ -152,8 +143,8 @@ export default class Typesetting {
                             },
                             on: {
                                 mouseup: (e: Event) => {
-                                    if (Global.state.addDraging) { // 新增
-                                        that.updateData(null, Global.getDragData())
+                                    if (state.global.addDraging) { // 新增
+                                        that.updateData(null, DragImg.dragData)
                                     }
                                 }
                             }
@@ -166,6 +157,7 @@ export default class Typesetting {
                                 dataAST: childAst,
                                 updateData: that.updateData.bind(that),
                                 changeKey: that.changeKey.bind(that),
+                                global: state.global,
                             }
                         }
                         if ('comp' in childAst) {
@@ -179,7 +171,8 @@ export default class Typesetting {
                             type: 'footer',
                             height: state.pageBaseConfig?.footer_height || 0,
                             changeKey: that.changeKey.bind(that),
-                            config: state.pageBaseConfig.footerConfig
+                            config: state.pageBaseConfig.footerConfig,
+                            global: state.global,
                         }
                     })
                 ])
@@ -278,7 +271,7 @@ export default class Typesetting {
             Vue.prototype.$delete(findAst.fatherChildren, findAst.index)
         }
         // 如果是删除的选中的节点，清理掉并通知外界
-        if (key === Global.state.currentKey) {
+        if (key === this.state.global.currentKey) {
             this.changeKey(null)
         } 
     }

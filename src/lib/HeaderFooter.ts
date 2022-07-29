@@ -1,5 +1,4 @@
 import Vue from 'vue'
-import Global from './Global'
 import Line from './Line'
 
 export default Vue.component('typesetting-header-footer', {
@@ -16,6 +15,9 @@ export default Vue.component('typesetting-header-footer', {
             type: Function
         },
         config: {
+            type: Object
+        },
+        global: {
             type: Object
         }
     },
@@ -48,14 +50,14 @@ export default Vue.component('typesetting-header-footer', {
                     }
                 }
             }, [
-                h(Global.getComponent(this.type)),
+                h(this.global.hostVue.$options.components[this.type] || 'div'),
                 // 选中线框
                 h('div', {
                     style: {
                         position: 'absolute',
                         inset: 0,
                         border: `2px solid ${Line.color}`,
-                        opacity: Global.state.currentKey === `${this.type}-${index}` ? 1 : 0,
+                        opacity: this.global.currentKey === `${this.type}-${index}` ? 1 : 0,
                         zIndex: 0
                     }
                 })

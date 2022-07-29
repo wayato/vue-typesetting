@@ -19,6 +19,9 @@ const Container = Vue.component('typesetting-container', {
             type: Number,
             default: 1
         },
+        global: {
+            type: Object
+        }
     },
     data() {
         return {
@@ -94,7 +97,8 @@ const Container = Vue.component('typesetting-container', {
                         dataAST: childAst,
                         flex: index === 0 ? this.dataAST.p : (1 - this.dataAST.p),
                         updateData: this.updateData,
-                        changeKey: this.changeKey
+                        changeKey: this.changeKey,
+                        global: this.global
                     },
                     key: childAst.key,
                 }

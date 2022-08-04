@@ -10,7 +10,7 @@ export default class Utils {
 
     // 生成uuid
     public static getUuid(): string {
-        return (<any>crypto)?.randomUUID() || Math.random().toString()
+        return new Date().getTime().toString()
     }
 
     // 设置拖拽图像

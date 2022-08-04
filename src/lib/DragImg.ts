@@ -65,8 +65,8 @@ export default class DragImg {
         this.dragVueInstance.left = left
         this.dragVueInstance.top = top
 
-        document.documentElement.addEventListener('mousemove', this.move)
-        document.documentElement.addEventListener('mouseup', this.up)
+        document.addEventListener('mousemove', this.move)
+        document.addEventListener('mouseup', this.up)
     }
     public static move(e: MouseEvent) {
         if (DragImg.dragVueInstance) {
@@ -76,8 +76,8 @@ export default class DragImg {
     }
     public static up() {
         DragImg.hide()
-        document.documentElement.removeEventListener('mousemove', DragImg.move)
-        document.documentElement.removeEventListener('mouseup', DragImg.up)
+        document.removeEventListener('mousemove', DragImg.move)
+        document.removeEventListener('mouseup', DragImg.up)
     }
     public static hide() {
         this.dragData = null

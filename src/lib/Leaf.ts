@@ -104,11 +104,11 @@ export default Vue.component('typesetting-leaf', {
                                 newLeaf
                             ]
                             this.updateData(this.dataAST.key, {
-                                key: Utils.getUuid(),
+                                key: key + '-c', // 给容器的id
                                 dir: /left|right/.test(item[0]) ? 1 : 2,
                                 p: 0.5,
                                 children: /bottom|right/.test(item[0]) ? children : children.reverse()
-                            })
+                            }, newLeaf)
                             this.changeKey(newLeaf)
                         }
                     }

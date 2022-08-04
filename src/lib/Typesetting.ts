@@ -44,13 +44,18 @@ export default class Typesetting {
     }
 
     // 监听事件
-    public listenerEvents: Map<string, (e: unknown) => void> = new Map()
-    public addEventListener(eventName: string, callback: (e: unknown) => void) {
+    public listenerEvents: Map<string, Function> = new Map()
+    public addEventListener(eventName: string, callback: Function) {
         this.listenerEvents.set(eventName, callback)
     }
-    public handleEvent(eventName: string, e: unknown) {
+    public handleEvent(eventName: string, params: {
+        type: 'add' | 'delete' | 'exchange' | 'update',
+        attr?: string, // 如果type是update则可能有这项，代表更改了其中的什么属性
+        allData: Array<LeafAst | ContianerAst>,
+        data: LeafAst | LeafAst[]
+    }) {
         if (this.listenerEvents.has(eventName)) {
-            this.listenerEvents.get(eventName)(e)
+            this.listenerEvents.get(eventName)(params)
         }
     }
 
@@ -182,15 +187,14 @@ export default class Typesetting {
     }
 
     // 更新数据
-    public updateData(key: string, param?: string | ContianerAst | LeafAst) {
+    public updateData(key: string, param?: string | ContianerAst | LeafAst, newLeaf?: LeafAst) {
         if (typeof param === 'string') {
             this.exchangeAst(key, param)
         } else if (param === undefined) {
             this.deleteAst(key)
         } else {
-            this.updateAst(key, param)
+            this.updateAst(key, param, newLeaf)
         }
-        this.handleEvent('update', JSON.parse(JSON.stringify(this.state.dataAST)))
     }
 
     // 根据name修改特定的数据
@@ -204,7 +208,12 @@ export default class Typesetting {
                 if (JSON.stringify((<any>ast)[name]) != JSON.stringify(data)) {
                     Vue.prototype.$set(ast, name, JSON.parse(JSON.stringify(data)))
                 } // 数据相同则不执行
-                this.handleEvent('update', JSON.parse(JSON.stringify(this.state.dataAST)))
+                this.handleEvent('update', {
+                    type: 'update',
+                    attr: name,
+                    allData: JSON.parse(JSON.stringify(this.state.dataAST)),
+                    data: JSON.parse(JSON.stringify(ast))
+                })
             }
         } catch (e) {
             console.error('查询不到key所在节点')
@@ -232,21 +241,26 @@ export default class Typesetting {
     }
 
     // 找到key的节点，把更改后的数据更新进去
-    private updateAst(key: string, targetAst: ContianerAst | LeafAst) {
+    private updateAst(key: string, targetAst: ContianerAst | LeafAst, newLeaf?: LeafAst) {
         if (key === null) {
             targetAst = <LeafAst>targetAst
             key = Utils.getUuid()
-            const newLeaf: LeafAst = {
+            newLeaf = {
                 key,
                 ...targetAst
             }
             // page第一层插入元素
             this.state.dataAST.push(newLeaf)
             this.changeKey(newLeaf)
-            return
+        } else {
+            const findAst: FindAst = this.findAst(key)
+            Vue.prototype.$set(findAst.fatherChildren, findAst.index, targetAst)
         }
-        const findAst: FindAst = this.findAst(key)
-        Vue.prototype.$set(findAst.fatherChildren, findAst.index, targetAst)
+        this.handleEvent('update', {
+            type: newLeaf ? 'add' : 'update',
+            allData: JSON.parse(JSON.stringify(this.state.dataAST)),
+            data: JSON.parse(JSON.stringify(newLeaf || targetAst))
+        })
     }
 
     // 交换两个节点
@@ -255,6 +269,11 @@ export default class Typesetting {
         const findAst2: FindAst = this.findAst(key2)
         Vue.prototype.$set(findAst1.fatherChildren, findAst1.index, findAst2.ast)
         Vue.prototype.$set(findAst2.fatherChildren, findAst2.index, findAst1.ast)
+        this.handleEvent('update', {
+            type: 'exchange',
+            allData: JSON.parse(JSON.stringify(this.state.dataAST)),
+            data: JSON.parse(JSON.stringify([findAst1.ast, findAst2.ast]))
+        })
     }
 
     // 将id节点的父节点更改为key节点的兄弟节点
@@ -273,7 +292,12 @@ export default class Typesetting {
         // 如果是删除的选中的节点，清理掉并通知外界
         if (key === this.state.global.currentKey) {
             this.changeKey(null)
-        } 
+        }
+        this.handleEvent('update', {
+            type: 'delete',
+            allData: JSON.parse(JSON.stringify(this.state.dataAST)),
+            data: JSON.parse(JSON.stringify(findAst.ast))
+        })
     }
 }
 

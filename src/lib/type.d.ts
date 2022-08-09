@@ -1,9 +1,9 @@
 // Page基本配置项
 type PageBaseConfig = {
-    bg_color: string // 页面背景颜色
+    bgColor: string // 页面背景颜色
     watermark: string // 水印
-    left_margin: string // 左边距
-    right_margin: string // 右边距
+    leftMargin: string // 左边距
+    rightMargin: string // 右边距
     fontFamily: string // 全局字体
     title: PageTitleType
 }

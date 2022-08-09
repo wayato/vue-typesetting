@@ -7,6 +7,7 @@ import Container from './Container'
 import Leaf from './Leaf'
 import DragImg from './DragImg'
 import HeaderFooter from './HeaderFooter'
+import Watermark from './Watermark'
 
 export default class Typesetting {
 
@@ -111,11 +112,11 @@ export default class Typesetting {
                         display: 'flex',
                         flexDirection: 'column',
                         inset: 0,
-                        paddingLeft: state.pageBaseConfig?.left_margin || '10px',
-                        paddingRight: state.pageBaseConfig?.right_margin || '10px',
+                        paddingLeft: state.pageBaseConfig?.leftMargin || '10px',
+                        paddingRight: state.pageBaseConfig?.rightMargin || '10px',
                         paddingTop: '10px',
                         paddingBottom: '10px',
-                        backgroundColor: state.pageBaseConfig?.bg_color || '#FFF',
+                        backgroundColor: state.pageBaseConfig?.bgColor || '#FFF',
                         '-webkit-user-select': 'none',
                         '-moz-user-select': 'none',
                         '-ms-user-select': 'none',
@@ -193,6 +194,18 @@ export default class Typesetting {
                             changeKey: that.changeKey.bind(that),
                             config: state.headerFooterConfig.props[1],
                             global: state.global,
+                        }
+                    }),
+                    h(Watermark, {
+                        props: {
+                            src: state.pageBaseConfig?.watermark || ''
+                        },
+                        style: {
+                            position: 'absolute',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            pointerEvents: 'none'
                         }
                     })
                 ])

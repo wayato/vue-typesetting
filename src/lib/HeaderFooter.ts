@@ -7,6 +7,15 @@ export default Vue.component('typesetting-header-footer', {
             type: String,
             default: 'header'
         },
+        // 渲染页眉页脚的组件名称
+        comp: {
+            type: String
+        },
+        // 是否禁用操作
+        disabled: {
+            type: Boolean,
+            default: false
+        },
         height: {
             type: [Number, String],
             default: 0
@@ -15,7 +24,7 @@ export default Vue.component('typesetting-header-footer', {
             type: Function
         },
         config: {
-            type: Object
+            type: Array
         },
         global: {
             type: Object
@@ -23,6 +32,9 @@ export default Vue.component('typesetting-header-footer', {
     },
     render(h) {
         return h('div', {
+            class: {
+                'vue-typesetting__header-footer-wrap': true
+            },
             style: {
                 display: this.height === 0 ? 'none' : 'flex',
                 border: '1px dashed #E6E6FF',
@@ -32,7 +44,7 @@ export default Vue.component('typesetting-header-footer', {
         }, new Array(3).fill(null).map((_, index: number) => {
             return h('div', {
                 class: {
-                    'vue-typesetting__header-footer': true
+                    'vue-typesetting__header-footer': !this.disabled
                 },
                 style: {
                     flex: 1,
@@ -41,16 +53,21 @@ export default Vue.component('typesetting-header-footer', {
                 },
                 on: {
                     click: () => {
+                        if (this.disabled) return
                         this.changeKey({
                             key: `${this.type}-${index}`,
                             props: {
-                                ...this.config
+                                ...this.config[index]
                             }
                         })
                     }
                 }
             }, [
-                h(this.global.hostVue.$options.components[this.type] || 'div'),
+                h(this.global.hostVue.$options.components[this.comp] || 'div', {
+                    style: {
+                        height: '100%'
+                    }
+                }),
                 // 选中线框
                 h('div', {
                     style: {

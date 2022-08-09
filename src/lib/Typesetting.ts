@@ -33,6 +33,11 @@ export default class Typesetting {
         this.state.pageBaseConfig = config
     }
 
+    // 设置页眉页脚配置
+    public setHeaderFooterConfig(config: HeaderFooterConfig): void {
+        this.state.headerFooterConfig = config
+    }
+
     // 页面的布局数据
     public setData(dataAST: Array<ContianerAst | LeafAst>): void {
         this.state.dataAST = dataAST
@@ -75,6 +80,12 @@ export default class Typesetting {
     public state = Vue.observable({
         dataAST: [],
         pageBaseConfig: <PageBaseConfig>{},
+        headerFooterConfig: <HeaderFooterConfig>{
+            comp: 'div',
+            height: ['0px', '0px'],
+            disabled: false,
+            props: [[], []],
+        },
         global: {
             hostVue: null, // 宿主vue实例
             debug: false, // 是否开启debug模式
@@ -102,8 +113,8 @@ export default class Typesetting {
                         inset: 0,
                         paddingLeft: state.pageBaseConfig?.left_margin || '10px',
                         paddingRight: state.pageBaseConfig?.right_margin || '10px',
-                        paddingTop: state.pageBaseConfig?.paddingTop || '10px',
-                        paddingBottom: state.pageBaseConfig?.paddingBottom || '10px',
+                        paddingTop: '10px',
+                        paddingBottom: '10px',
                         backgroundColor: state.pageBaseConfig?.bg_color || '#FFF',
                         '-webkit-user-select': 'none',
                         '-moz-user-select': 'none',
@@ -126,9 +137,11 @@ export default class Typesetting {
                     h(HeaderFooter, {
                         props: {
                             type: 'header',
-                            height: state.pageBaseConfig?.header_height || 0,
+                            comp: state.headerFooterConfig.comp,
+                            height: state.headerFooterConfig.height[0] || 0,
+                            disabled: state.headerFooterConfig.disabled || false,
                             changeKey: that.changeKey.bind(that),
-                            config: state.pageBaseConfig.headerConfig,
+                            config: state.headerFooterConfig.props[0],
                             global: state.global,
                         }
                     }),
@@ -174,9 +187,11 @@ export default class Typesetting {
                     h(HeaderFooter, {
                         props: {
                             type: 'footer',
-                            height: state.pageBaseConfig?.footer_height || 0,
+                            comp: state.headerFooterConfig.comp,
+                            height: state.headerFooterConfig.height[1] || 0,
+                            disabled: state.headerFooterConfig.disabled || false,
                             changeKey: that.changeKey.bind(that),
-                            config: state.pageBaseConfig.footerConfig,
+                            config: state.headerFooterConfig.props[1],
                             global: state.global,
                         }
                     })
@@ -202,7 +217,9 @@ export default class Typesetting {
         try {
             let ast: ContianerAst | LeafAst = null
             if (/header|footer/.test(key)) {
-                console.log('页眉页脚逻辑待补充')
+                // 页眉页脚只支持props内容的修改
+                const target: object[] = this.state.headerFooterConfig.props[/header/.test(key) ? 0 : 1]
+                Vue.prototype.$set(target, Number(key[key.length - 1]), JSON.parse(JSON.stringify(data)))
             } else {
                 ast = this.findAst(key).ast
                 if (JSON.stringify((<any>ast)[name]) != JSON.stringify(data)) {

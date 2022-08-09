@@ -2,16 +2,18 @@
 type PageBaseConfig = {
     bg_color: string // 页面背景颜色
     watermark: string // 水印
-    header_height: string // 页眉高度
-    headerConfig: any // 页眉配置
-    footer_height: string // 页脚高度
-    footerConfig: any // 页脚配置
     left_margin: string // 左边距
     right_margin: string // 右边距
-    paddingTop: string // 上边距
-    paddingBottom: string // 下边距
     fontFamily: string // 全局字体
     title: PageTitleType
+}
+
+// 页眉页脚配置
+type HeaderFooterConfig = {
+    comp: string // 组件名称
+    disabled: boolean // 是否禁用操作
+    height: [string, string] // 页眉、页脚分别高度
+    props: [object[], object[]] // 页眉、页脚分别传入的props
 }
 
 // Page标题配置

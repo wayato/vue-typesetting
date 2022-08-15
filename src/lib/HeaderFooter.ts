@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue, { PropType } from 'vue'
 import Line from './Line'
 
 export default Vue.component('typesetting-header-footer', {
@@ -28,6 +28,9 @@ export default Vue.component('typesetting-header-footer', {
         },
         global: {
             type: Object
+        },
+        pageInfo: {
+            type: Object as PropType<PageInfo>
         }
     },
     render(h) {
@@ -37,7 +40,7 @@ export default Vue.component('typesetting-header-footer', {
             },
             style: {
                 display: this.height === 0 ? 'none' : 'flex',
-                border: '1px dashed #E6E6FF',
+                border: this.disabled ? 0 : '1px dashed #E6E6FF',
                 borderRight: 0,
                 height: typeof this.height === 'number' ? this.height + 'px' : this.height
             }
@@ -49,7 +52,7 @@ export default Vue.component('typesetting-header-footer', {
                 style: {
                     flex: 1,
                     position: 'relative',
-                    borderRight: '1px dashed #E6E6FF'
+                    borderRight: this.disabled ? 0 : '1px dashed #E6E6FF'
                 },
                 on: {
                     click: () => {
@@ -64,6 +67,11 @@ export default Vue.component('typesetting-header-footer', {
                 }
             }, [
                 h(this.global.hostVue.$options.components[this.comp] || 'div', {
+                    props: {
+                        ...this.config[index],
+                        page: this.pageInfo.page,
+                        total: this.pageInfo.total
+                    },
                     style: {
                         height: '100%'
                     }

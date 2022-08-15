@@ -1,4 +1,4 @@
-import Vue, { VNode } from 'vue'
+import Vue, { PropType, VNode } from 'vue'
 import Line from './Line'
 import Utils from './Utils'
 import DragImg from './DragImg'
@@ -19,8 +19,7 @@ export default Vue.component('typesetting-leaf', {
             type: Function
         },
         dataAST: {
-            // TODO 修改类型
-            type: Object
+            type: Object as PropType<LeafAst>
         },
         flex: {
             type: Number,

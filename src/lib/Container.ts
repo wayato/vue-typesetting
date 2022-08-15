@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue, { PropType } from 'vue'
 import Leaf from './Leaf'
 import Line from './Line'
 import Utils from './Utils'
@@ -12,8 +12,7 @@ const Container = Vue.component('typesetting-container', {
             type: Function
         },
         dataAST: {
-            // TODO 修改类型
-            type: Object
+            type: Object as PropType<ContianerAst>
         },
         flex: {
             type: Number,

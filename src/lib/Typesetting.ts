@@ -34,6 +34,11 @@ export default class Typesetting {
         this.state.pageBaseConfig = config
     }
 
+    // 页面的额外信息
+    public setInfo(info: PageInfo): void {
+        this.state.pageInfo = info
+    }
+
     // 设置页眉页脚配置
     public setHeaderFooterConfig(config: HeaderFooterConfig): void {
         this.state.headerFooterConfig = config
@@ -55,7 +60,7 @@ export default class Typesetting {
         this.listenerEvents.set(eventName, callback)
     }
     public handleEvent(eventName: string, params: {
-        type: 'add' | 'delete' | 'exchange' | 'update',
+        type: 'add' | 'delete' | 'exchange' | 'update' | 'update-header-footer',
         attr?: string, // 如果type是update则可能有这项，代表更改了其中的什么属性
         allData: Array<LeafAst | ContianerAst>,
         data: LeafAst | LeafAst[]
@@ -79,8 +84,9 @@ export default class Typesetting {
     }
 
     public state = Vue.observable({
-        dataAST: [],
+        dataAST: <Array<LeafAst | ContianerAst>>[],
         pageBaseConfig: <PageBaseConfig>{},
+        pageInfo: <PageInfo>{},
         headerFooterConfig: <HeaderFooterConfig>{
             comp: 'div',
             height: ['0px', '0px'],
@@ -144,12 +150,14 @@ export default class Typesetting {
                             changeKey: that.changeKey.bind(that),
                             config: state.headerFooterConfig.props[0],
                             global: state.global,
+                            pageInfo: state.pageInfo
                         }
                     }),
                     h('div', {
                         style: {
                             flex: 1,
-                            display: 'flex'
+                            display: 'flex',
+                            fontFamily: state.pageBaseConfig?.fontFamily || '微软雅黑',
                         }
                     }, state.dataAST.length === 0
                     ? [
@@ -194,6 +202,7 @@ export default class Typesetting {
                             changeKey: that.changeKey.bind(that),
                             config: state.headerFooterConfig.props[1],
                             global: state.global,
+                            pageInfo: state.pageInfo
                         }
                     }),
                     h(Watermark, {
@@ -232,7 +241,14 @@ export default class Typesetting {
             if (/header|footer/.test(key)) {
                 // 页眉页脚只支持props内容的修改
                 const target: object[] = this.state.headerFooterConfig.props[/header/.test(key) ? 0 : 1]
+                console.log('target', target)
                 Vue.prototype.$set(target, Number(key[key.length - 1]), JSON.parse(JSON.stringify(data)))
+                this.handleEvent('update', {
+                    type: 'update-header-footer',
+                    attr: 'props',
+                    allData: JSON.parse(JSON.stringify(this.state.headerFooterConfig)),
+                    data: JSON.parse(JSON.stringify(target))
+                })
             } else {
                 ast = this.findAst(key).ast
                 if (JSON.stringify((<any>ast)[name]) != JSON.stringify(data)) {
@@ -246,7 +262,7 @@ export default class Typesetting {
                 })
             }
         } catch (e) {
-            console.error('查询不到key所在节点')
+            console.error(e)
         }
     }
 

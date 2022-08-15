@@ -5,7 +5,12 @@ type PageBaseConfig = {
     leftMargin: string // 左边距
     rightMargin: string // 右边距
     fontFamily: string // 全局字体
-    title: PageTitleType
+}
+
+// 可能需要展示在某处的信息
+type PageInfo = {
+    page: number // 当前页
+    total: number // 总页码
 }
 
 // 页眉页脚配置
@@ -14,16 +19,6 @@ type HeaderFooterConfig = {
     disabled: boolean // 是否禁用操作
     height: [string, string] // 页眉、页脚分别高度
     props: [object[], object[]] // 页眉、页脚分别传入的props
-}
-
-// Page标题配置
-type PageTitleType = {
-    fontFamily: string // 字体
-    fontSize: string // 字号
-    color: string // 颜色
-    bold: boolean // 是否加粗
-    italic: boolean // 是否斜体
-    underline: boolean // 是否下划线
 }
 
 type ContianerAst = {

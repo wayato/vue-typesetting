@@ -27,6 +27,9 @@ export default Vue.component('typesetting-leaf', {
         },
         global: {
             type: Object
+        },
+        scale: {
+            type: Number
         }
     },
     data() {
@@ -120,7 +123,7 @@ export default Vue.component('typesetting-leaf', {
                     inset: item[1],
                     transition: 'opacity .3s',
                     opacity: 0,
-                    border: `2px dashed ${Line.color}`,
+                    border: `${Line.getWeight(this.scale)}px dashed ${Line.color}`,
                     zIndex: 5
                 }
             }))
@@ -203,7 +206,7 @@ export default Vue.component('typesetting-leaf', {
                     width: '100%',
                     height: '100%',
                 }
-            }) : h('div', null, '加载中'),
+            }) : h('div', null, '加载中……'),
             h('div', {
                 style: {
                     position: 'absolute',
@@ -219,7 +222,7 @@ export default Vue.component('typesetting-leaf', {
                     style: {
                         position: 'absolute',
                         inset: 0,
-                        border: `2px dashed ${Line.color}`,
+                        border: `${Line.getWeight(this.scale)}px dashed ${Line.color}`,
                         background: '#FFF',
                         transition: 'opacity .3s',
                         zIndex: (this.global.updateDraging && !this.dragSelf) ? 15 : 1,
@@ -239,9 +242,9 @@ export default Vue.component('typesetting-leaf', {
                     style: {
                         position: 'absolute',
                         inset: 0,
-                        border: `2px solid ${Line.color}`,
+                        border: `${Line.getWeight(this.scale)}px solid ${Line.color}`,
                         opacity: this.global.currentKey === this.dataAST.key ? 1 : 0,
-                        zIndex: 0
+                        pointerEvents: 'none'
                     }
                 }),
                 ...allArea

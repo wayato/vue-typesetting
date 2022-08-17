@@ -29,6 +29,12 @@ export default class Typesetting {
         this.state.global.debug = debug
     }
 
+    // 设置整体缩放大小
+    public setScale(size: { width: string, height: string }, scale: number): void {
+        this.state.size = size
+        this.state.scale = scale
+    }
+
     // 页面的基本配置
     public setConfig(config: PageBaseConfig): void {
         this.state.pageBaseConfig = config
@@ -71,7 +77,7 @@ export default class Typesetting {
     }
 
     // 修改当前currentKey
-    public changeKey(data: LeafAst | null) {
+    public changeKey(data: LeafAst | null = null) {
         if (data === null) {
             data = {
                 key: '',
@@ -87,6 +93,11 @@ export default class Typesetting {
         dataAST: <Array<LeafAst | ContianerAst>>[],
         pageBaseConfig: <PageBaseConfig>{},
         pageInfo: <PageInfo>{},
+        size: {
+            width: '100%',
+            height: '100%'
+        },
+        scale: 1,
         headerFooterConfig: <HeaderFooterConfig>{
             comp: 'div',
             height: ['0px', '0px'],
@@ -126,9 +137,18 @@ export default class Typesetting {
                         '-webkit-user-select': 'none',
                         '-moz-user-select': 'none',
                         '-ms-user-select': 'none',
-                        'user-select': 'none'
+                        'user-select': 'none',
+                        transform: `scale(${state.scale})`,
+                        transformOrigin: '0 0',
+                        width: state.size.width,
+                        height: state.size.height,
+                        boxSizing: 'border-box'
                     },
                     on: {
+                        click: (e: Event) => {
+                            Utils.stopBubble(e)
+                            that.changeKey()
+                        },
                         mouseleave: () => {
                             if (state.global.updateDraging) {
                                 state.global.isInner = false
@@ -141,7 +161,23 @@ export default class Typesetting {
                         }
                     }
                 }, [
+                    h(Watermark, {
+                        props: {
+                            src: state.pageBaseConfig?.watermark || ''
+                        },
+                        style: {
+                            position: 'absolute',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            pointerEvents: 'none',
+                            zIndex: -1
+                        }
+                    }),
                     h(HeaderFooter, {
+                        nativeOn: {
+                            click: Utils.stopBubble
+                        },
                         props: {
                             type: 'header',
                             comp: state.headerFooterConfig.comp,
@@ -150,7 +186,8 @@ export default class Typesetting {
                             changeKey: that.changeKey.bind(that),
                             config: state.headerFooterConfig.props[0],
                             global: state.global,
-                            pageInfo: state.pageInfo
+                            pageInfo: state.pageInfo,
+                            scale: state.scale
                         }
                     }),
                     h('div', {
@@ -166,7 +203,9 @@ export default class Typesetting {
                                 flex: 1,
                                 display: 'flex',
                                 justifyContent: 'center',
-                                alignItems: 'center'
+                                alignItems: 'center',
+                                fontFamily: '微软雅黑',
+                                fontSize: `${12 / state.scale}px`
                             },
                             on: {
                                 mouseup: (e: Event) => {
@@ -175,7 +214,19 @@ export default class Typesetting {
                                     }
                                 }
                             }
-                        }, '拖拽至这里')
+                        }, [
+                            h('img', {
+                                domProps: {
+                                    src: require('../assets/tip.png')
+                                },
+                                style: {
+                                    height: `${16 / state.scale}px`,
+                                    width: `${16 / state.scale}px`,
+                                    marginRight: `${8 / state.scale}px`
+                                }
+                            }),
+                            h('span', null, '可拖曳组件至此区域，如删除组件需拖曳组件脱离此区域')
+                        ])
                     ]
                     : state.dataAST.map((childAst: ContianerAst | LeafAst) => {
                         const params = {
@@ -185,7 +236,11 @@ export default class Typesetting {
                                 updateData: that.updateData.bind(that),
                                 changeKey: that.changeKey.bind(that),
                                 global: state.global,
-                            }
+                                scale: state.scale
+                            },
+                            nativeOn: {
+                                click: Utils.stopBubble,
+                            },
                         }
                         if ('comp' in childAst) {
                             return h(Leaf, params)
@@ -194,6 +249,9 @@ export default class Typesetting {
                         }
                     })),
                     h(HeaderFooter, {
+                        nativeOn: {
+                            click: Utils.stopBubble
+                        },
                         props: {
                             type: 'footer',
                             comp: state.headerFooterConfig.comp,
@@ -202,19 +260,8 @@ export default class Typesetting {
                             changeKey: that.changeKey.bind(that),
                             config: state.headerFooterConfig.props[1],
                             global: state.global,
-                            pageInfo: state.pageInfo
-                        }
-                    }),
-                    h(Watermark, {
-                        props: {
-                            src: state.pageBaseConfig?.watermark || ''
-                        },
-                        style: {
-                            position: 'absolute',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            pointerEvents: 'none'
+                            pageInfo: state.pageInfo,
+                            scale: state.scale
                         }
                     })
                 ])
@@ -235,13 +282,12 @@ export default class Typesetting {
     }
 
     // 根据name修改特定的数据
-    public updateByName(key: string, name: string, data: unknown) {
+    public updateByName(key: string, name: string, data: unknown = {}) {
         try {
             let ast: ContianerAst | LeafAst = null
             if (/header|footer/.test(key)) {
                 // 页眉页脚只支持props内容的修改
                 const target: object[] = this.state.headerFooterConfig.props[/header/.test(key) ? 0 : 1]
-                console.log('target', target)
                 Vue.prototype.$set(target, Number(key[key.length - 1]), JSON.parse(JSON.stringify(data)))
                 this.handleEvent('update', {
                     type: 'update-header-footer',
@@ -250,15 +296,15 @@ export default class Typesetting {
                     data: JSON.parse(JSON.stringify(target))
                 })
             } else {
-                ast = this.findAst(key).ast
-                if (JSON.stringify((<any>ast)[name]) != JSON.stringify(data)) {
+                ast = this.findAst(key)?.ast
+                if (ast && (JSON.stringify((<any>ast)[name]) != JSON.stringify(data))) {
                     Vue.prototype.$set(ast, name, JSON.parse(JSON.stringify(data)))
                 } // 数据相同则不执行
                 this.handleEvent('update', {
                     type: 'update',
                     attr: name,
                     allData: JSON.parse(JSON.stringify(this.state.dataAST)),
-                    data: JSON.parse(JSON.stringify(ast))
+                    data: ast ? JSON.parse(JSON.stringify(ast)) : null
                 })
             }
         } catch (e) {
@@ -322,7 +368,7 @@ export default class Typesetting {
         })
     }
 
-    // 将id节点的父节点更改为key节点的兄弟节点
+    // 删除节点，将id节点的父节点更改为key节点的兄弟节点
     private deleteAst(key: string) {
         const findAst: FindAst = this.findAst(key)
         if (findAst.father) {
@@ -342,7 +388,7 @@ export default class Typesetting {
         this.handleEvent('update', {
             type: 'delete',
             allData: JSON.parse(JSON.stringify(this.state.dataAST)),
-            data: JSON.parse(JSON.stringify(findAst.ast))
+            data: findAst.ast ? JSON.parse(JSON.stringify(findAst.ast)) : null
         })
     }
 }

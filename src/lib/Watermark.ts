@@ -11,6 +11,8 @@ export default Vue.component('typesetting-watermark', {
         return h('img', {
             domProps: {
                 src: this.src
+                // src: this.src + '?' + new Date().getTime(),
+                // crossOrigin: 'anonymous',
             }
         })
     }

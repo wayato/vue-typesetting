@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import Line from './Line'
 
 
 const DragImgComponent = Vue.component('typesetting-drag-img', {
@@ -33,8 +34,10 @@ const DragImgComponent = Vue.component('typesetting-drag-img', {
             style: {
                 width: '100px',
                 height: '40px',
-                border: '1px solid red',
+                border: `2px dashed ${Line.color}`,
+                background: '#FFF',
                 position: 'fixed',
+                opacity: 0.6,
                 zIndex: 100,
                 left: this.left + 'px',
                 top: this.top + 'px',

@@ -20,6 +20,9 @@ const Container = Vue.component('typesetting-container', {
         },
         global: {
             type: Object
+        },
+        scale: {
+            type: Number
         }
     },
     data() {
@@ -41,15 +44,15 @@ const Container = Vue.component('typesetting-container', {
                 return {
                     left: 0,
                     right: 0,
-                    height: '4px',
-                    top: `calc(${proportion} * 100% - 2px)`
+                    height: `${4 / this.scale}px`,
+                    top: `calc(${proportion} * 100% - ${2 / this.scale}px`
                 }
             } else {
                 return {
                     top: 0,
                     bottom: 0,
-                    width: '4px',
-                    left: `calc(${proportion} * 100% - 2px)`
+                    width: `${4 / this.scale}px`,
+                    left: `calc(${proportion} * 100% - ${2 / this.scale}px)`
                 }
             }
         }
@@ -97,7 +100,8 @@ const Container = Vue.component('typesetting-container', {
                         flex: index === 0 ? this.dataAST.p : (1 - this.dataAST.p),
                         updateData: this.updateData,
                         changeKey: this.changeKey,
-                        global: this.global
+                        global: this.global,
+                        scale: this.scale
                     },
                     key: childAst.key,
                 }

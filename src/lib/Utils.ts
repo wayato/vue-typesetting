@@ -1,5 +1,5 @@
-const DRAG_IMG: HTMLImageElement = new Image()
-DRAG_IMG.src = require('../assets/drag.jpg')
+// const DRAG_IMG: HTMLImageElement = new Image()
+// DRAG_IMG.src = require('../assets/drag.jpg')
 // 工具类
 export default class Utils {
     // 阻止冒泡

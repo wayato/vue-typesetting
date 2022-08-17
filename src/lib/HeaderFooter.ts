@@ -31,6 +31,9 @@ export default Vue.component('typesetting-header-footer', {
         },
         pageInfo: {
             type: Object as PropType<PageInfo>
+        },
+        scale: {
+            type: Number
         }
     },
     render(h) {
@@ -40,7 +43,7 @@ export default Vue.component('typesetting-header-footer', {
             },
             style: {
                 display: this.height === 0 ? 'none' : 'flex',
-                border: this.disabled ? 0 : '1px dashed #E6E6FF',
+                border: this.disabled ? 0 : `${2 / this.scale}px dashed #E6E6FF`,
                 borderRight: 0,
                 height: typeof this.height === 'number' ? this.height + 'px' : this.height
             }
@@ -52,7 +55,7 @@ export default Vue.component('typesetting-header-footer', {
                 style: {
                     flex: 1,
                     position: 'relative',
-                    borderRight: this.disabled ? 0 : '1px dashed #E6E6FF'
+                    borderRight: this.disabled ? 0 : `${1 / this.scale}px dashed #E6E6FF`
                 },
                 on: {
                     click: () => {
@@ -80,8 +83,8 @@ export default Vue.component('typesetting-header-footer', {
                 h('div', {
                     style: {
                         position: 'absolute',
-                        inset: 0,
-                        border: `2px solid ${Line.color}`,
+                        inset: `${-2 / this.scale}px`,
+                        border: `${Line.getWeight(this.scale)}px solid ${Line.color}`,
                         opacity: this.global.currentKey === `${this.type}-${index}` ? 1 : 0,
                         zIndex: 0
                     }

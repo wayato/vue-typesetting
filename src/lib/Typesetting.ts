@@ -209,18 +209,8 @@ export default class Typesetting {
                     ? [
                         h('div', {
                             style: {
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                width: '100%',
-                                display: state.global.preview ? 'none' : 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                fontFamily: '微软雅黑',
-                                fontSize: `${12 / state.scale}px`,
-                                background: 'rgba(255, 255, 255, 0.8)',
-                                lineHeight: '1.5em'
+                                flex: 1,
+                                position: 'relative'
                             },
                             on: {
                                 mouseup: (e: Event) => {
@@ -230,17 +220,35 @@ export default class Typesetting {
                                 }
                             }
                         }, [
-                            h('img', {
-                                domProps: {
-                                    src: require('../assets/tip.png')
-                                },
+                            h('div', {
                                 style: {
-                                    height: `${16 / state.scale}px`,
-                                    width: `${16 / state.scale}px`,
-                                    marginRight: `${8 / state.scale}px`
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    fontFamily: '微软雅黑',
+                                    transform: 'translate(-50%, -50%)',
+                                    fontSize: `${12 / state.scale}px`,
+                                    background: 'rgba(255, 255, 255, 0.8)',
+                                    lineHeight: '2em',
+                                    display: state.global.preview ? 'none' : 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    whiteSpace: 'nowrap',
+                                    borderRadius: `${10 / state.scale}px`
                                 }
-                            }),
-                            h('span', null, '可拖曳组件至此区域，如删除组件需拖曳组件脱离此区域')
+                            }, [
+                                h('img', {
+                                    domProps: {
+                                        src: require('../assets/tip.png')
+                                    },
+                                    style: {
+                                        height: `${16 / state.scale}px`,
+                                        width: `${16 / state.scale}px`,
+                                        marginRight: `${8 / state.scale}px`
+                                    }
+                                }),
+                                h('span', null, '可拖曳组件至此区域，如删除组件需拖曳组件脱离此区域')
+                            ])
                         ])
                     ]
                     : state.dataAST.map((childAst: ContianerAst | LeafAst) => {

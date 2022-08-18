@@ -39,23 +39,26 @@ export default Vue.component('typesetting-header-footer', {
     render(h) {
         return h('div', {
             class: {
-                'vue-typesetting__header-footer-wrap': true
+                'vue-typesetting__header-footer': true
             },
             style: {
                 display: this.height === 0 ? 'none' : 'flex',
-                border: this.disabled ? 0 : `${2 / this.scale}px dashed #E6E6FF`,
-                borderRight: 0,
-                height: typeof this.height === 'number' ? this.height + 'px' : this.height
+                border: `${1.5 / this.scale}px dashed #E6E6FF`,
+                height: typeof this.height === 'number' ? this.height + 'px' : this.height,
+                borderColor: (this.global.preview || this.disabled) ? 'transparent' : '#E6E6FF',
+                transition: 'borderColor .3s'
             }
         }, new Array(3).fill(null).map((_, index: number) => {
             return h('div', {
                 class: {
-                    'vue-typesetting__header-footer': !this.disabled
+                    'vue-typesetting__header-footer--content': !this.disabled
                 },
                 style: {
                     flex: 1,
                     position: 'relative',
-                    borderRight: this.disabled ? 0 : `${1 / this.scale}px dashed #E6E6FF`
+                    borderRight: `${1.5 / this.scale}px dashed #E6E6FF`,
+                    borderColor: (this.global.preview || this.disabled) ? 'transparent' : '#E6E6FF',
+                    transition: 'borderColor .3s'
                 },
                 on: {
                     click: () => {
@@ -83,7 +86,7 @@ export default Vue.component('typesetting-header-footer', {
                 h('div', {
                     style: {
                         position: 'absolute',
-                        inset: `${-2 / this.scale}px`,
+                        inset: `${-1.5 / this.scale}px`,
                         border: `${Line.getWeight(this.scale)}px solid ${Line.color}`,
                         opacity: this.global.currentKey === `${this.type}-${index}` ? 1 : 0,
                         zIndex: 0

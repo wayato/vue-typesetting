@@ -19,45 +19,51 @@ export default class Typesetting {
         })
     }
 
-    // 设置渲染typesetting的宿主vue
-    public setVue(hostVue: Vue): void {
+    // 设置渲染typesetting的宿主vue, 以及宿主环境是否是生产环境
+    public setVue(hostVue: Vue, isProduction: boolean = true) {
         this.state.global.hostVue = hostVue
+        this.state.global.isProduction = isProduction
     }
 
     // 开启debug模式
-    public setDebug(debug: boolean): void {
+    public setDebug(debug: boolean) {
         this.state.global.debug = debug
     }
 
     // 设置整体缩放大小
-    public setScale(size: { width: string, height: string }, scale: number): void {
+    public setScale(size: { width: string, height: string }, scale: number) {
         this.state.size = size
         this.state.scale = scale
     }
 
     // 页面的基本配置
-    public setConfig(config: PageBaseConfig): void {
+    public setConfig(config: PageBaseConfig) {
         this.state.pageBaseConfig = config
     }
 
     // 页面的额外信息
-    public setInfo(info: PageInfo): void {
+    public setInfo(info: PageInfo) {
         this.state.pageInfo = info
     }
 
     // 设置页眉页脚配置
-    public setHeaderFooterConfig(config: HeaderFooterConfig): void {
+    public setHeaderFooterConfig(config: HeaderFooterConfig) {
         this.state.headerFooterConfig = config
     }
 
     // 页面的布局数据
-    public setData(dataAST: Array<ContianerAst | LeafAst>): void {
+    public setData(dataAST: Array<ContianerAst | LeafAst>) {
         this.state.dataAST = dataAST
     }
 
     // 设置组件传入props之前的aop事件
     public setPropsAOP(event: any) {
         this.state.global.propsAop = event
+    }
+
+    // 设置是否是预览模式，此模式下不会显示页眉页脚的线框
+    public setPreview(preview: boolean = false) {
+        this.state.global.preview = preview
     }
 
     // 监听事件
@@ -106,6 +112,8 @@ export default class Typesetting {
         },
         global: {
             hostVue: null, // 宿主vue实例
+            isProduction: true, // 宿主所在环境是否是生产环境
+            preview: false, // 是否是预览模式
             debug: false, // 是否开启debug模式
             propsAop: null, // 组件渲染前置事件
             currentKey: '', // 当前选中的key
@@ -115,7 +123,7 @@ export default class Typesetting {
         }
     })
     // 渲染函数
-    public render($el: HTMLElement): void {
+    public render($el: HTMLElement) {
         const that = this
         const state = that.state
         const component = Vue.extend({
@@ -163,6 +171,7 @@ export default class Typesetting {
                 }, [
                     h(Watermark, {
                         props: {
+                            global: state.global,
                             src: state.pageBaseConfig?.watermark || ''
                         },
                         style: {
@@ -200,12 +209,18 @@ export default class Typesetting {
                     ? [
                         h('div', {
                             style: {
-                                flex: 1,
-                                display: 'flex',
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                width: '100%',
+                                display: state.global.preview ? 'none' : 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
                                 fontFamily: '微软雅黑',
-                                fontSize: `${12 / state.scale}px`
+                                fontSize: `${12 / state.scale}px`,
+                                background: 'rgba(255, 255, 255, 0.8)',
+                                lineHeight: '1.5em'
                             },
                             on: {
                                 mouseup: (e: Event) => {

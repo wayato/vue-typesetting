@@ -5,14 +5,16 @@ export default Vue.component('typesetting-watermark', {
         src: {
             type: String,
             default: ''
+        },
+        global: {
+            type: Object
         }
     },
     render(h) {
         return h('img', {
             domProps: {
-                src: this.src
-                // src: this.src + '?' + new Date().getTime(),
-                // crossOrigin: 'anonymous',
+                src: this.src + '?' + new Date().getTime(),
+                crossOrigin: this.global.isProduction ? 'anonymous' : undefined
             }
         })
     }

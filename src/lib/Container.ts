@@ -38,6 +38,31 @@ const Container = Vue.component('typesetting-container', {
             if (this.$el) this.rect = this.$el.getBoundingClientRect()
         })
     },
+    methods: {
+        lineMousemove(e: MouseEvent) {
+            if (!this.isDraging) return
+            if (this.dataAST.dir === 1) {
+                this.dragLineProportion = Number(((e.clientX - this.rect.left) / this.rect.width).toFixed(2))
+            } else {
+                this.dragLineProportion = Number(((e.clientY - this.rect.top) / this.rect.height).toFixed(2))
+            }
+            if (this.dragLineProportion > 1) this.dragLineProportion = 1
+            if (this.dragLineProportion < 0) this.dragLineProportion = 0
+            this.dragLineShow = true
+        },
+        lineMouseup(e: MouseEvent) {
+            if (!this.isDraging || !this.dragLineShow) return
+            this.dragLineShow = false
+            this.isDraging = false
+            this.updateData(this.dataAST.key, {
+                ...this.dataAST,
+                p: this.dragLineProportion
+            })
+            document.removeEventListener('mousemove', this.lineMousemove)
+            document.removeEventListener('mouseup', this.lineMouseup)
+            document.body.style.cursor = 'auto'
+        }
+    },
     render(h) {
         const getLine = (direction: 1 | 2, proportion: number) => {
             if (direction === 2) {
@@ -71,26 +96,6 @@ const Container = Vue.component('typesetting-container', {
             },
             on: {
                 drop: Utils.stopBubble,
-                mousemove: (e: MouseEvent) => {
-                    if (!this.isDraging) return
-                    if (this.dataAST.dir === 1) {
-                        this.dragLineProportion = Number(((e.clientX - this.rect.left) / this.rect.width).toFixed(2))
-                    } else {
-                        this.dragLineProportion = Number(((e.clientY - this.rect.top) / this.rect.height).toFixed(2))
-                    }
-                    if (this.dragLineProportion > 1) this.dragLineProportion = 1
-                    if (this.dragLineProportion < 0) this.dragLineProportion = 0
-                    this.dragLineShow = true
-                },
-                mouseup: (e: MouseEvent) => {
-                    if (!this.isDraging || !this.dragLineShow) return
-                    this.dragLineShow = false
-                    this.isDraging = false
-                    this.updateData(this.dataAST.key, {
-                        ...this.dataAST,
-                        p: this.dragLineProportion
-                    })
-                }
             }
         }, [
             this.dataAST.children.map((childAst: ContianerAst | LeafAst, index: number) => {
@@ -131,8 +136,8 @@ const Container = Vue.component('typesetting-container', {
                 style: {
                     position: 'absolute',
                     background: Line.color,
-                    cursor: 'grabbing',
                     zIndex: 11,
+                    cursor: this.dataAST.dir == 1 ? 'col-resize' : 'row-resize',
                     ...getLine(this.dataAST.dir, this.dataAST.p)
                 },
                 on: {
@@ -140,6 +145,9 @@ const Container = Vue.component('typesetting-container', {
                         Utils.stopBubble(e)
                         this.isDraging = true
                         this.rect = this.$el.getBoundingClientRect()
+                        document.addEventListener('mousemove', this.lineMousemove)
+                        document.addEventListener('mouseup', this.lineMouseup)
+                        document.body.style.cursor = this.dataAST.dir == 1 ? 'col-resize' : 'row-resize'
                     },
                     mouseup: (e: MouseEvent) => {
                         this.isDraging = false

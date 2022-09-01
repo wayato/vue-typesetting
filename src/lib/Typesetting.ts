@@ -124,6 +124,7 @@ export default class Typesetting {
     })
     // 渲染函数
     public render($el: HTMLElement) {
+        DragImg.hostEl = $el
         const that = this
         const state = that.state
         const component = Vue.extend({
@@ -247,7 +248,7 @@ export default class Typesetting {
                                         marginRight: `${8 / state.scale}px`
                                     }
                                 }),
-                                h('span', null, '可拖曳组件至此区域，如删除组件需拖曳组件脱离此区域')
+                                h('span', null, '可拖拽组件至此区域，如删除组件需拖拽组件脱离此区域')
                             ])
                         ])
                     ]

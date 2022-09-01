@@ -7,7 +7,8 @@ const DragImgComponent = Vue.component('typesetting-drag-img', {
         return {
             left: 0,
             top: 0,
-            show: false
+            show: false,
+            showDelete: false
         }
     },
     computed: {
@@ -35,20 +36,38 @@ const DragImgComponent = Vue.component('typesetting-drag-img', {
                 width: '100px',
                 height: '40px',
                 border: `2px dashed ${Line.color}`,
-                background: '#FFF',
+                background: 'rgba(255, 255, 255, 0.6)',
                 position: 'fixed',
-                opacity: 0.6,
                 zIndex: 100,
                 left: this.left + 'px',
                 top: this.top + 'px',
                 pointerEvents: 'none',
                 display: this.show ? 'block' : 'none'
             }
-        })
+        }, [
+            h('img', {
+                domProps: {
+                    src: require('../assets/delete.png')
+                },
+                style: {
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    height: '16px',
+                    width: 'auto',
+                    opacity: this.showDelete ? 1 : 0,
+                    transition: 'opacity .1s ease'
+                }
+            })
+        ])
     }
 })
 
 export default class DragImg {
+    // typesetting的宿主元素，需要判断是否移出这个范围
+    public static hostEl: HTMLElement
+
     // 存储当次拖拽携带的数据
     public static dragData: any
 
@@ -75,6 +94,13 @@ export default class DragImg {
         if (DragImg.dragVueInstance) {
             DragImg.dragVueInstance.left = e.x
             DragImg.dragVueInstance.top = e.y
+            if (!DragImg.dragData.key) return
+            const { left, top, height, width } = DragImg.hostEl.getBoundingClientRect()
+            if (e.x < left || e.y < top || e.x > left + width || e.y > height + top) {
+                DragImg.dragVueInstance.showDelete = true
+            } else {
+                DragImg.dragVueInstance.showDelete = false
+            }
         }
     }
     public static up() {

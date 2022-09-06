@@ -11,11 +11,11 @@ export default Vue.component('typesetting-watermark', {
         }
     },
     render(h) {
-        return h('img', {
+        return this.src ? h('img', {
             domProps: {
                 src: this.src + '?' + new Date().getTime(),
                 crossOrigin: this.global.isProduction ? 'anonymous' : undefined
             }
-        })
+        }) : null
     }
 })

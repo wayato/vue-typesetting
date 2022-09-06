@@ -170,20 +170,6 @@ export default class Typesetting {
                         }
                     }
                 }, [
-                    h(Watermark, {
-                        props: {
-                            global: state.global,
-                            src: state.pageBaseConfig?.watermark || ''
-                        },
-                        style: {
-                            position: 'absolute',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            pointerEvents: 'none',
-                            zIndex: -1
-                        }
-                    }),
                     h(HeaderFooter, {
                         nativeOn: {
                             click: Utils.stopBubble
@@ -272,6 +258,19 @@ export default class Typesetting {
                             return h(Container, params)
                         }
                     })),
+                    h(Watermark, {
+                        props: {
+                            global: state.global,
+                            src: state.pageBaseConfig?.watermark || ''
+                        },
+                        style: {
+                            position: 'absolute',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            pointerEvents: 'none'
+                        }
+                    }),
                     h(HeaderFooter, {
                         nativeOn: {
                             click: Utils.stopBubble
@@ -317,7 +316,10 @@ export default class Typesetting {
                     type: 'update-header-footer',
                     attr: 'props',
                     allData: JSON.parse(JSON.stringify(this.state.headerFooterConfig)),
-                    data: JSON.parse(JSON.stringify(target))
+                    data: <LeafAst>{
+                        key,
+                        props: JSON.parse(JSON.stringify(data))
+                    }
                 })
             } else {
                 ast = this.findAst(key)?.ast
@@ -374,6 +376,7 @@ export default class Typesetting {
         }
         this.handleEvent('update', {
             type: newLeaf ? 'add' : 'update',
+            attr: newLeaf ? undefined : 'p',
             allData: JSON.parse(JSON.stringify(this.state.dataAST)),
             data: JSON.parse(JSON.stringify(newLeaf || targetAst))
         })

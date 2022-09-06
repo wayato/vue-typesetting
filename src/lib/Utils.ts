@@ -13,6 +13,19 @@ export default class Utils {
         return new Date().getTime().toString()
     }
 
+    // 防抖
+    public static debounce(fn: Function, t: number) {
+        let timeId: NodeJS.Timeout | null = null
+        const delay: number = t || 1000
+        return function (this: any, ...args: any) {
+            if (timeId) clearTimeout(timeId)
+                timeId = setTimeout(() => {
+                    timeId = null
+                fn.apply(this, args)
+            }, delay)
+        }
+    }
+
     // 设置拖拽图像
     // public static setDragImg(e: DragEvent) {
     //     e.dataTransfer.setDragImage(DRAG_IMG, 0, 0)

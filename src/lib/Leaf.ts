@@ -77,6 +77,9 @@ export default Vue.component('typesetting-leaf', {
                 ...this.dataAST.props,
                 ...this.extraProps
             }
+        },
+        renderComp() {
+            return this.global.hostVue.$options.components[this.dataAST.comp] || 'div'
         }
     },
     render(h) {
@@ -184,7 +187,7 @@ export default Vue.component('typesetting-leaf', {
                             console.log(JSON.parse(JSON.stringify(this.dataAST)))
                         }
                     }
-                }, '此节点的数据'),
+                }, '节点数据'),
                 h('button', {
                     style: {
                         marginRight: '10px',
@@ -196,9 +199,24 @@ export default Vue.component('typesetting-leaf', {
                             console.log(JSON.parse(JSON.stringify(this.compProps)))
                         }
                     }
-                }, '真实传入的props'),
+                }, '传入props'),
+                h('button', {
+                    style: {
+                        marginRight: '10px',
+                        fontSize: '20px'
+                    },
+                    on: {
+                        click: (e: Event) => {
+                            Utils.stopBubble(e)
+                            Reflect.set(window, 'debugVue', this.$refs[this.dataAST.key])
+                            console.log('实例数据已赋值变量：debugVue')
+                            console.log(this.$refs[this.dataAST.key])
+                        }
+                    }
+                }, '组件实例'),
             ]) : null,
-            this.isRender ? h(this.global.hostVue.$options.components[this.dataAST.comp] || 'div', {
+            this.isRender ? h(this.renderComp, {
+                ref: this.dataAST.key,
                 props: this.compProps,
                 style: {
                     position: 'absolute',

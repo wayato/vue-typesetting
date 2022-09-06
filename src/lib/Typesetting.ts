@@ -401,7 +401,9 @@ export default class Typesetting {
         if (findAst.father) {
             // fatherChildren只有两个元素，!findAst.index非0即1，非1即0，便是其兄弟节点
             const sibling: ContianerAst | LeafAst = findAst.fatherChildren[Number(!findAst.index)]
-            Object.assign(findAst.father, sibling)
+            Object.keys(sibling).forEach((key: keyof (ContianerAst | LeafAst)) => {
+                Vue.prototype.$set(findAst.father, key, <any>sibling[key])
+            })
             if (!('children' in sibling)) Vue.prototype.$delete(findAst.father, 'children')
             if (!('p' in sibling)) Vue.prototype.$delete(findAst.father, 'p')
             if (!('dir' in sibling)) Vue.prototype.$delete(findAst.father, 'dir')

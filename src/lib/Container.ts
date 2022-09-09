@@ -151,6 +151,7 @@ const Container = Vue.component('typesetting-container', {
                     },
                     mouseup: (e: MouseEvent) => {
                         this.isDraging = false
+                        document.body.style.cursor = 'auto'
                     },
                     click: Utils.stopBubble
                 },

@@ -46,8 +46,8 @@ const Container = Vue.component('typesetting-container', {
             } else {
                 this.dragLineProportion = Number(((e.clientY - this.rect.top) / this.rect.height).toFixed(2))
             }
-            if (this.dragLineProportion > 1) this.dragLineProportion = 1
-            if (this.dragLineProportion < 0) this.dragLineProportion = 0
+            if (this.dragLineProportion > 0.99) this.dragLineProportion = 0.99
+            if (this.dragLineProportion < 0.01) this.dragLineProportion = 0.01
             this.dragLineShow = true
         },
         lineMouseup(e: MouseEvent) {

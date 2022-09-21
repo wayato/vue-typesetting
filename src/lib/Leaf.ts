@@ -37,7 +37,8 @@ export default Vue.component('typesetting-leaf', {
             tipAreaIndex: -1, // 当前展示提示的阴影区域 0上 1右 2下 3左
             tipAreaAll: false, // 是否显示整个提示区域
             dragSelf: false, // 是否在拖拽自身
-            extraProps: null // 额外的props，通过执行aop事件获得
+            extraProps: null, // 额外的props，通过执行aop事件获得
+            compProps: {}, // 传入组件的props
         }
     },
     watch: {
@@ -53,12 +54,23 @@ export default Vue.component('typesetting-leaf', {
                                 return
                             }
                             this.extraProps = res
+                            this.compProps = {
+                                ...this.dataAST.props,
+                                ...this.extraProps
+                            }
                         })
                     } else {
                         this.extraProps = obj
+                        this.compProps = {
+                            ...this.dataAST.props,
+                            ...this.extraProps
+                        }
                     }
                 } else if (obj === undefined) {
-                    // 没有返回值，不做任何操作，也不会渲染组件
+                    // 没有aop事件，则没有额外参数
+                    this.compProps = {
+                        ...this.dataAST.props
+                    }
                 } else {
                     console.warn('额外props传入有误')
                 }
@@ -71,12 +83,6 @@ export default Vue.component('typesetting-leaf', {
         // 是否该渲染组件了
         isRender() {
             return (!!this.global.propsAop && !!this.extraProps) || !this.global.propsAop
-        },
-        compProps() {
-            return {
-                ...this.dataAST.props,
-                ...this.extraProps
-            }
         },
         renderComp() {
             return this.global.hostVue.$options.components[this.dataAST.comp] || 'div'

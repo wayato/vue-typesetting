@@ -42,7 +42,7 @@ export default Vue.component('typesetting-header-footer', {
                 'vue-typesetting__header-footer': true
             },
             style: {
-                display: this.height === 0 ? 'none' : 'flex',
+                display: /^0/.test(this.height) ? 'none' : 'flex',
                 border: `${1.5 / this.scale}px dashed #E6E6FF`,
                 height: typeof this.height === 'number' ? this.height + 'px' : this.height,
                 borderColor: (this.global.preview || this.disabled) ? 'transparent' : '#E6E6FF',

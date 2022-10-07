@@ -1,4 +1,2 @@
-import Typesetting from "./lib/Typesetting"
-import './style/index.less'
-
+import Typesetting from "./lib2/impl/TypesettingImpl"
 export default Typesetting

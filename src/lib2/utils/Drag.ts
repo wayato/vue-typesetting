@@ -29,7 +29,7 @@ export default class Drag {
         if (Drag.isShow.value) return
         Drag.hostDom = document.createElement('div')
         Drag.hostDom.style.position = 'fixed'
-        Drag.hostDom.style['pointer-events'] = 'none'
+        Drag.hostDom.style.pointerEvents = 'none'
         document.body.append(Drag.hostDom)
 
         Drag.left.value = e.x
@@ -91,16 +91,10 @@ export default class Drag {
 
     static getLayout(): VNode {
         return MyVue.h('div', {
+            class: 'vue-typesetting__drag',
             style: {
-                width: '100px',
-                height: '40px',
-                border: `2px dashed teal`,
-                background: 'rgba(255, 255, 255, 0.6)',
-                position: 'fixed',
-                zIndex: 100,
                 left: Drag.left.value + 'px',
                 top: Drag.top.value + 'px',
-                pointerEvents: 'none',
                 display: Drag.isShow.value ? 'block' : 'none'
             }
         }, '')

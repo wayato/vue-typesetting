@@ -26,8 +26,19 @@
     }
     &__header-footer {
         &--content {
+            position: relative;
             &:last-child {
                 border-right: 0 !important;
+            }
+            &::after {
+                position: absolute;
+                inset: 0;
+                content: '';
+            }
+            &:hover {
+                &::after {
+                    background-color: rgba(239, 242, 255, 0.6);
+                }
             }
         }
     }

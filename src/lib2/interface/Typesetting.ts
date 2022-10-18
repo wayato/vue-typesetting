@@ -1,6 +1,9 @@
 interface Typesetting {
     init(vue: Vue, domId: string): void
 
+    // 开始拖拽
+    startDrag(e: MouseEvent, vueComp: VueComp): void
+
     // 插入组件
     insertComp(comp: Component): boolean
 

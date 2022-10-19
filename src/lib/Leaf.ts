@@ -93,7 +93,10 @@ export default Vue.component('typesetting-leaf', {
                 },
                 style: {
                     position: 'absolute',
-                    inset: item[1],
+                    top: item[1].split(' ')[0],
+                    right: item[1].split(' ')[1],
+                    bottom: item[1].split(' ')[2],
+                    left: item[1].split(' ')[3],
                     opacity: 0,
                     clipPath: item[2],
                     zIndex: 10,
@@ -125,7 +128,10 @@ export default Vue.component('typesetting-leaf', {
                 style: {
                     position: 'absolute',
                     background: '#FFF',
-                    inset: item[1],
+                    top: item[1].split(' ')[0],
+                    right: item[1].split(' ')[1],
+                    bottom: item[1].split(' ')[2],
+                    left: item[1].split(' ')[3],
                     transition: 'opacity .3s',
                     opacity: 0,
                     border: `${Line.getWeight(this.scale)}px dashed ${Line.color}`,
@@ -222,7 +228,10 @@ export default Vue.component('typesetting-leaf', {
                 props: this.compProps,
                 style: {
                     position: 'absolute',
-                    inset: 0,
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
                     width: '100%',
                     height: '100%',
                 }
@@ -230,7 +239,10 @@ export default Vue.component('typesetting-leaf', {
             h('div', {
                 style: {
                     position: 'absolute',
-                    inset: 0,
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
                     boxSizing: 'border-box'
                 }
             }, [
@@ -241,7 +253,10 @@ export default Vue.component('typesetting-leaf', {
                     },
                     style: {
                         position: 'absolute',
-                        inset: 0,
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
                         border: `${Line.getWeight(this.scale)}px dashed ${Line.color}`,
                         background: '#FFF',
                         transition: 'opacity .3s',
@@ -261,7 +276,10 @@ export default Vue.component('typesetting-leaf', {
                 h('div', {
                     style: {
                         position: 'absolute',
-                        inset: 0,
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
                         border: `${Line.getWeight(this.scale)}px solid ${Line.color}`,
                         opacity: this.global.currentKey === this.dataAST.key ? 1 : 0,
                         pointerEvents: 'none'

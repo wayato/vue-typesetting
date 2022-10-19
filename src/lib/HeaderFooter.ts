@@ -86,7 +86,10 @@ export default Vue.component('typesetting-header-footer', {
                 h('div', {
                     style: {
                         position: 'absolute',
-                        inset: `${-1.5 / this.scale}px`,
+                        right: `${-1.5 / this.scale}px`,
+                        left: `${-1.5 / this.scale}px`,
+                        top: `${-1.5 / this.scale}px`,
+                        bottom: `${-1.5 / this.scale}px`,
                         border: `${Line.getWeight(this.scale)}px solid ${Line.color}`,
                         opacity: this.global.currentKey === `${this.type}-${index}` ? 1 : 0,
                         zIndex: 0

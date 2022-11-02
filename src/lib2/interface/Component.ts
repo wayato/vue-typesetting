@@ -4,4 +4,6 @@ interface Component {
     props?: any
     style?: any
     extra?: any
+
+    destroy(): void
 }

@@ -1,11 +1,22 @@
+import Drag from '../utils/Drag'
 import MyVue from '../utils/MyVue'
+import Utils from '../utils/Utils'
+import DivideLeafNode from './DivideLeafNodeImpl'
 
 export default class PageImpl implements Page {
     id: string
-    children: AllNode[] = []
+    children: Reactive<AllNode[]>
 
-    add(comp: Component, containerId: string): string {
-        throw new Error("Method not implemented.");
+    constructor() {
+        this.id = Utils.getUUID()
+        this.children = MyVue.reactive<AllNode[]>([])
+    }
+
+    add(vueComp: VueComp): string {
+        const divideLeafNode = new DivideLeafNode()
+        divideLeafNode.init(vueComp)
+        this.children.push(divideLeafNode)
+        return divideLeafNode.id
     }
     delete(id: string): boolean {
         throw new Error("Method not implemented.");
@@ -23,8 +34,11 @@ export default class PageImpl implements Page {
         return MyVue.h('div', {
             class: 'vue-typesetting__page',
             on: {
-                click: () => {
-                    console.log('插入第一个组件')
+                mouseup: () => {
+                    const vueComp: VueComp = Drag.getComp()
+                    if (vueComp && this.children.length === 0) {
+                        this.add(vueComp)
+                    }
                 }
             }
         }, this.children.map((node: AllNode) => node.getLayout()))

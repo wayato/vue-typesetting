@@ -1,20 +1,8 @@
 import MyVue from "./MyVue"
 
 export default class Drag {
-    // // typesetting的宿主元素，需要判断是否移出这个范围
-    // public static hostEl: HTMLElement
-
-    // // 存储当次拖拽携带的数据
-    // public static dragData: any
-
-    // // 当前产生的拖拽实例
-    // public static dragVueInstance: any
-
-    // // 结束时执行的回调
-    // public static callback: Function
-
-    // static data: any
     static hostDom: HTMLElement
+    static vueComp: VueComp
     static isShow: Reactive<boolean>
     static left: Reactive<number>
     static top: Reactive<number>
@@ -36,35 +24,16 @@ export default class Drag {
         Drag.top.value = e.y
         Drag.isShow.value = true
         MyVue.render(this.getLayout, Drag.hostDom)
-        // if (!this.dragVueInstance) {
-        //     this.dragVueInstance = new (Vue.extend(DragImgComponent))()
-        //     document.body.append(this.dragVueInstance.$mount().$el)
-        // }
-        // this.dragVueInstance.left = left
-        // this.dragVueInstance.top = top
 
         document.addEventListener('mousemove', Drag.move)
         document.addEventListener('mouseup', Drag.up)
     }
 
     static move(e: MouseEvent) {
-        // console.log(e)
         Drag.left.value = e.x
         Drag.top.value = e.y
-        // console.log(Drag.data)
-        // console.log(Drag.vue.reactive)
-        // if (Drag.dragVueInstance) {
-        //     Drag.dragVueInstance.left = e.x
-        //     Drag.dragVueInstance.top = e.y
-        //     if (!Drag.dragData.key) return
-        //     const { left, top, height, width } = Drag.hostEl.getBoundingClientRect()
-        //     if (e.x < left || e.y < top || e.x > left + width || e.y > height + top) {
-        //         Drag.dragVueInstance.showDelete = true
-        //     } else {
-        //         Drag.dragVueInstance.showDelete = false
-        //     }
-        // }
     }
+
     static up() {
         Drag.hide()
         document.removeEventListener('mousemove', Drag.move)
@@ -78,15 +47,17 @@ export default class Drag {
         } else {
             Drag.hostDom = null
         }
-        // this.dragData = null
-        // if (this.callback) {
-        //     this.callback()
-        //     this.callback = null
-        // }
-        // if (this.dragVueInstance) {
-        //     this.dragVueInstance.destroyGragImg()
-        //     this.dragVueInstance = null
-        // }
+    }
+
+    static setComp(vueComp: VueComp) {
+        Drag.vueComp = vueComp
+    }
+
+    static getComp(): VueComp {
+        // 只提供一次获取
+        const vueComp: VueComp = Drag.vueComp
+        Drag.vueComp = null
+        return vueComp
     }
 
     static getLayout(): VNode {

@@ -1,7 +1,7 @@
 interface DivideLeafNode {
     id: string
-    containerId: string
     compId: string
 
+    init(vueComp: VueComp): void
     getLayout(): VNode
 }

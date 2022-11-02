@@ -1,11 +1,24 @@
+import MyVue from '../utils/MyVue';
 import Utils from '../utils/Utils'
 import Component from './ComponentImpl'
 
-export default class ComponentDespImpl implements ComponentDesp {
-    components: { [id: string]: Component; };
+class ComponentDespImpl implements ComponentDesp {
+    currentId: Reactive<string>
+    components: Reactive<{ 
+        [id: string]: Component
+    }>
+
+    init(): void {
+        this.currentId = MyVue.reactive<string>('')
+        this.components = MyVue.reactive<{ 
+            [id: string]: Component
+        }>({})
+    }
+    select(id: string): void {
+        this.currentId.value = id
+    }
     add(vueComp: VueComp): string {
         const component = new Component()
-        component.id = Utils.getUUID()
         component.vueComp = vueComp
         Reflect.set(this.components, component.id, component)
         return component.id
@@ -17,7 +30,17 @@ export default class ComponentDespImpl implements ComponentDesp {
         throw new Error("Method not implemented.");
     }
     find(id: string): Component {
-        throw new Error("Method not implemented.");
+        return Reflect.get(this.components, id)
     }
-
+    clear(): void {
+        if (typeof this.components === 'object') {
+            for (const id in this.components) {
+                this.components[id].destroy()
+                Reflect.deleteProperty(this.components, id)
+            }
+        }
+        this.init()
+    }
 }
+
+export default new ComponentDespImpl()

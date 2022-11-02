@@ -1,6 +1,11 @@
+interface InitialOption {
+    el: HTMLElement
+    vue: Vue
+}
+
 interface Vue {
     version: number | string
-    h(tag: string, option: VNodeOption, content: string | VNode[]): VNode
+    h(tag: string | VueComp, option?: VNodeOption, content?: string | VNode[]): VNode
     reactive <T> (target: T): Reactive<T>
     render: any
 }
@@ -24,3 +29,8 @@ type VueComp = {
 type DivideNode = DivideContainerNode | DivideLeafNode
 type LeafNode = FloatLeafNode | DivideLeafNode
 type AllNode = LeafNode | DivideContainerNode
+
+declare enum OperEvent {
+    SELECT = 'select',
+    CHANGE = 'change'
+}

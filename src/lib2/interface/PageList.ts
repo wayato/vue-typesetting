@@ -1,6 +1,6 @@
 interface PageList {
     children: Reactive<Page[]>
-    currentId: string
+    currentId: Reactive<string>
 
     add(index: number): string
     delete(id: string): boolean

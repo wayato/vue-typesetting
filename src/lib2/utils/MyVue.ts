@@ -13,12 +13,19 @@ export default class MyVue {
 
     static hToCompatible(vue: Vue): Vue['h'] {
         return (tag: string, option: VNodeOption, content: string | VNode[]): VNode => {
-            if (MyVue.version == 3) {
+            if (MyVue.version == 3 && option) {
+                // 事件
                 const events: { [key: string]: Function } = Reflect.get(option, 'on')
                 for (const key in events) {
                     Reflect.set(option, `on${key.slice(0, 1).toUpperCase() + key.slice(1)}`, Reflect.get(events, key))
                 }
                 Reflect.deleteProperty(option, 'on')
+                // props
+                const props: { [key: string]: unknown } = Reflect.get(option, 'props')
+                for (const key in props) {
+                    Reflect.set(option, key, Reflect.get(props, key))
+                }
+                Reflect.deleteProperty(option, 'props')
             }
             return vue.h(tag, option, content)
         }

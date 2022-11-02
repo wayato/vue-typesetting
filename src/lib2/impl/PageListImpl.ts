@@ -1,19 +1,20 @@
 import Page from './PageImpl'
 import Utils from '../utils/Utils'
 import MyVue from '../utils/MyVue'
+import ComponentDesp from './ComponentDespImpl'
 
 export default class PageListImpl implements PageList {
     children: Reactive<Page[]>
-    currentId: string
+    currentId: Reactive<string>
 
     constructor() {
+        ComponentDesp.clear()
         this.children = MyVue.reactive<Page[]>([])
         this.add(0)
     }
 
     add(index: number): string {
         const page = new Page()
-        page.id = Utils.getUUID()
         this.children.splice(index, 0, page)
         return page.id
     }

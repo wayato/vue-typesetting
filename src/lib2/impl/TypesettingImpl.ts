@@ -1,30 +1,23 @@
 import PageList from './PageListImpl'
 import Drag from '../utils/Drag'
 import MyVue from '../utils/MyVue'
+import Dispatch from '../utils/Dispatch'
 
 export default class TypesettingImpl implements Typesetting {
+    listenerEvents: Map<string, Function> = new Map()
 
-    init(vue: Vue, domId: string): void {
-        MyVue.init(vue)
-        const el: Element = document.getElementById(domId)
-
-        // 初始化拖拽
+    init(option: InitialOption): void {
+        MyVue.init(option.vue)
         Drag.init()
-
-        // 初始化画布
         const pageList = new PageList()
-        pageList.render(el)
-
+        pageList.render(option.el)
+        
     }
 
     startDrag(e: MouseEvent, vueComp: VueComp): void {
         Drag.show(e)
+        Drag.setComp(vueComp)
     }
-
-    endDrag() {
-
-    }
-
     insertComp(comp: Component): boolean {
         throw new Error("Method not implemented.");
     }
@@ -39,5 +32,9 @@ export default class TypesettingImpl implements Typesetting {
     }
     exchangeComp(id1: string, id2: string): boolean {
         throw new Error("Method not implemented.");
+    }
+    
+    on(eventName: OperEvent, callback: Function): void {
+        Dispatch.on(eventName, callback)
     }
 }

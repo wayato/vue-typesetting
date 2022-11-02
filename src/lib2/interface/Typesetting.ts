@@ -1,5 +1,6 @@
 interface Typesetting {
-    init(vue: Vue, domId: string): void
+    // 初始化
+    init(option: InitialOption): void
 
     // 开始拖拽
     startDrag(e: MouseEvent, vueComp: VueComp): void
@@ -18,4 +19,6 @@ interface Typesetting {
 
     // 交换组件
     exchangeComp(id1: string, id2: string): boolean
+
+    on(eventName: OperEvent, callback: Function): void
 }

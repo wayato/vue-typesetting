@@ -1,4 +1,4 @@
-interface Page {
+interface Page extends Layout<PageList> {
     id: string
     children: Reactive<Array<AllNode>>
 
@@ -6,7 +6,5 @@ interface Page {
     delete(id: string): boolean
     update(id: string, node: AllNode): boolean
     find(id: string): AllNode
-
     select(id: string): LeafNode
-    getLayout(vue: Vue): VNode
 }

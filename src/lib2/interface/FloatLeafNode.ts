@@ -1,4 +1,4 @@
-interface FloatLeafNode {
+interface FloatLeafNode extends Layout<Page> {
     id: string
     compId: string
     left: number | string
@@ -6,6 +6,4 @@ interface FloatLeafNode {
     width: number | string
     height: number | string
     zIndex: number
-
-    getLayout(): VNode
 }

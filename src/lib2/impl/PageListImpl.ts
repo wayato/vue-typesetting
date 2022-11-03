@@ -1,5 +1,4 @@
 import Page from './PageImpl'
-import Utils from '../utils/Utils'
 import MyVue from '../utils/MyVue'
 import ComponentDesp from './ComponentDespImpl'
 

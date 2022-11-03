@@ -14,7 +14,7 @@ export default class PageImpl implements Page {
 
     add(vueComp: VueComp): string {
         const divideLeafNode = new DivideLeafNode()
-        divideLeafNode.init(this, vueComp)
+        divideLeafNode.init(vueComp)
         this.children.push(divideLeafNode)
         return divideLeafNode.id
     }
@@ -43,6 +43,8 @@ export default class PageImpl implements Page {
                     }
                 }
             }
-        }, this.children.map((node: AllNode) => node.getLayout()))
+        }, this.children.map((node: AllNode) => node.getLayout({
+            fatherNode: this
+        })))
     }
 }

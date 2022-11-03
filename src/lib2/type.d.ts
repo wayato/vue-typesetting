@@ -30,7 +30,12 @@ type DivideNode = DivideContainerNode | DivideLeafNode
 type LeafNode = FloatLeafNode | DivideLeafNode
 type AllNode = LeafNode | DivideContainerNode
 
-declare const enum OperEvent {
+declare enum OperEvent {
     SELECT = 'select',
     CHANGE = 'change'
+}
+
+declare enum Direction {
+    COLUMN = 'column',
+    ROW = 'row'
 }

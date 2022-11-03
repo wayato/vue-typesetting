@@ -1,7 +1,7 @@
 import Dispatch from '../utils/Dispatch';
 import MyVue from '../utils/MyVue';
-import Utils from '../utils/Utils'
 import Component from './ComponentImpl'
+import { OperEvent } from '../enum'
 
 class ComponentDespImpl implements ComponentDesp {
     currentId: Reactive<string>
@@ -17,7 +17,7 @@ class ComponentDespImpl implements ComponentDesp {
     }
     select(id: string): void {
         this.currentId.value = id
-        Dispatch.emit('select', id)
+        Dispatch.emit(OperEvent.SELECT, id)
     }
     add(vueComp: VueComp): string {
         const component = new Component()

@@ -1,21 +1,22 @@
 import MyVue from '../utils/MyVue'
-import Page from './PageImpl'
+import { Direction } from '../enum'
 
 export default class DivideContainerNodeImpl implements DivideContainerNode {
     id: string;
     ratio: Reactive<number>
+    direction: Reactive<Direction>
     children: Reactive<[DivideNode, DivideNode]>
-    fatherNode: Page | DivideContainerNode
 
     constructor() {
         this.children = MyVue.reactive<[DivideNode, DivideNode]>([null, null])
+        this.direction = MyVue.reactive<Direction>(Direction.COLUMN)
     }
     
-    init(fatherNode: Page | DivideContainerNode, node1: DivideNode, node2: DivideNode, replaceId: string): void {
+    
+    init(node1: DivideNode, node2: DivideNode, direction: Direction): void {
         this.children[0] = node1
         this.children[1] = node2
-        fatherNode.update(replaceId, this)
-        this.fatherNode = fatherNode
+        this.direction.value = direction  
     }
 
     update(id: string, node: DivideNode): boolean {
@@ -26,7 +27,12 @@ export default class DivideContainerNodeImpl implements DivideContainerNode {
 
     getLayout(): VNode {
         return MyVue.h('div', {
-            class: 'vue-typesetting__divide-container'
-        }, this.children.map((node: DivideNode) => node.getLayout()))
+            class: 'vue-typesetting__divide-container',
+            style: {
+                flexDirection: this.direction.value
+            }
+        }, this.children.map((node: DivideNode) => node.getLayout({
+            fatherNode: this
+        })))
     }
 }

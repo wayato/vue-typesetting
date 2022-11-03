@@ -1,8 +1,6 @@
-interface DivideLeafNode {
+interface DivideLeafNode extends Layout<Page | DivideContainerNode> {
     id: string
     compId: string
-    fatherNode: Page | DivideContainerNode
 
-    init(fatherNode: Page | DivideContainerNode, vueComp: VueComp): void
-    getLayout(): VNode
+    init(vueComp: VueComp): void
 }

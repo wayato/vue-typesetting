@@ -14,15 +14,17 @@ export default class PageImpl implements Page {
 
     add(vueComp: VueComp): string {
         const divideLeafNode = new DivideLeafNode()
-        divideLeafNode.init(vueComp)
+        divideLeafNode.init(this, vueComp)
         this.children.push(divideLeafNode)
         return divideLeafNode.id
     }
     delete(id: string): boolean {
         throw new Error("Method not implemented.");
     }
-    update(id: string, data: Omit<AllNode, "id">): boolean {
-        throw new Error("Method not implemented.");
+    update(id: string, node: AllNode): boolean {
+        const nodeIndex: number = this.children.findIndex((item: AllNode) => item.id === id)
+        this.children.splice(nodeIndex, 1, node)
+        return nodeIndex != -1
     }
     find(id: string): AllNode {
         throw new Error("Method not implemented.");

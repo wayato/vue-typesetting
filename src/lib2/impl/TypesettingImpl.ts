@@ -2,6 +2,7 @@ import PageList from './PageListImpl'
 import Drag from '../utils/Drag'
 import MyVue from '../utils/MyVue'
 import Dispatch from '../utils/Dispatch'
+import ComponentDesp from './ComponentDespImpl'
 
 export default class TypesettingImpl implements Typesetting {
     listenerEvents: Map<string, Function> = new Map()
@@ -11,7 +12,6 @@ export default class TypesettingImpl implements Typesetting {
         Drag.init()
         const pageList = new PageList()
         pageList.render(option.el)
-        
     }
 
     startDrag(e: MouseEvent, vueComp: VueComp): void {
@@ -24,8 +24,8 @@ export default class TypesettingImpl implements Typesetting {
     selectComp(id: string): Component {
         throw new Error("Method not implemented.");
     }
-    updateComp(id: string, data: Partial<Omit<Component, "id">>): boolean {
-        throw new Error("Method not implemented.");
+    updateComp(id: string, data: Partial<Omit<Component, 'id' | 'vueComp'>>): void {
+        ComponentDesp.find(id).update(data)
     }
     removeComp(id: string): boolean {
         throw new Error("Method not implemented.");

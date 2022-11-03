@@ -1,3 +1,4 @@
+import Dispatch from '../utils/Dispatch';
 import MyVue from '../utils/MyVue';
 import Utils from '../utils/Utils'
 import Component from './ComponentImpl'
@@ -5,22 +6,23 @@ import Component from './ComponentImpl'
 class ComponentDespImpl implements ComponentDesp {
     currentId: Reactive<string>
     components: Reactive<{ 
-        [id: string]: Component
+        [id: string]: Reactive<Component>
     }>
 
     init(): void {
         this.currentId = MyVue.reactive<string>('')
         this.components = MyVue.reactive<{ 
-            [id: string]: Component
+            [id: string]: Reactive<Component>
         }>({})
     }
     select(id: string): void {
         this.currentId.value = id
+        Dispatch.emit('select', id)
     }
     add(vueComp: VueComp): string {
         const component = new Component()
         component.vueComp = vueComp
-        Reflect.set(this.components, component.id, component)
+        Reflect.set(this.components, component.id, MyVue.reactive<Component>(component))
         return component.id
     }
     delete(id: string): boolean {

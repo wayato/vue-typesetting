@@ -68,6 +68,6 @@ export default class Drag {
                 top: Drag.top.value + 'px',
                 display: Drag.isShow.value ? 'block' : 'none'
             }
-        }, '')
+        })
     }
 }

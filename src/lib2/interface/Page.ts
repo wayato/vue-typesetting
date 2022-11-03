@@ -4,7 +4,7 @@ interface Page {
 
     add(comp: VueComp): string
     delete(id: string): boolean
-    update(id: string, data: Omit<AllNode, 'id'>): boolean
+    update(id: string, node: AllNode): boolean
     find(id: string): AllNode
 
     select(id: string): LeafNode

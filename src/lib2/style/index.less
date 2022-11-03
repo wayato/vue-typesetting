@@ -2,18 +2,20 @@
     width: 100%;
     height: 100%;
     &__page {
-        width: 80%;
-        height: 80%;
-        border: 1px solid #000;
+        width: 100%;
+        height: 100%;
         display: flex;
     }
-    &__divide-container{
+    &__divide-container {
         flex: 1;
         display: flex;
     }
     &__divide-leaf{
         border: 1px solid teal;
         flex: 1;
+        &__selected {
+            border: 2px solid red;
+        }
     }
     &__float-leaf {
         position: absolute;

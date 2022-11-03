@@ -12,7 +12,7 @@ interface Typesetting {
     selectComp(id: string): Component
 
     // 更新组件
-    updateComp(id: string, data: Partial<Omit<Component, 'id'>>): boolean
+    updateComp(id: string, data: Partial<Omit<Component, 'id' | 'vueComp'>>): void
 
     // 移除组件
     removeComp(id: string): boolean

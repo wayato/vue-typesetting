@@ -10,6 +10,7 @@ export default class DivideContainerNodeImpl implements DivideContainerNode {
     constructor() {
         this.children = MyVue.reactive<[DivideNode, DivideNode]>([null, null])
         this.direction = MyVue.reactive<Direction>(Direction.COLUMN)
+        this.ratio = MyVue.reactive<number>(0.5)
     }
     
     
@@ -25,14 +26,40 @@ export default class DivideContainerNodeImpl implements DivideContainerNode {
         return nodeIndex != -1
     }
 
-    getLayout(): VNode {
+    getLayout(props: DivideContainerNodeProps): VNode {
         return MyVue.h('div', {
             class: 'vue-typesetting__divide-container',
             style: {
-                flexDirection: this.direction.value
+                flexDirection: this.direction.value,
+                flex: props.flex
             }
-        }, this.children.map((node: DivideNode) => node.getLayout({
-            fatherNode: this
-        })))
+        }, [
+            // this.getLineLayout(),
+            ...this.children.map((item: DivideNode, index: number) => {
+                return item.getLayout({
+                    fatherNode: this,
+                    flex: index === 0 ? this.ratio.value : 1 - this.ratio.value
+                })
+            })
+        ])
+    }
+
+    getLineLayout(): VNode {
+        type Line = {
+            width: string
+            height: string
+            left: string
+            right: string
+        }
+        // const Line1: Line = {
+        //     width: '100%',
+        //     height: 
+        // }
+        return MyVue.h('div', {
+            class: 'vue-typesetting__divide-container__line',
+            style: {
+
+            }
+        })
     }
 }

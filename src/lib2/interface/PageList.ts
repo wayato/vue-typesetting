@@ -1,4 +1,4 @@
-interface PageList {
+interface PageList extends Layout<PageListProps> {
     children: Reactive<Page[]>
     currentId: Reactive<string>
 
@@ -8,3 +8,5 @@ interface PageList {
     find(id: string): Page
     render(el: Element): void
 }
+
+type PageListProps = {}

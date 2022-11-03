@@ -1,4 +1,4 @@
-interface Page extends Layout<PageList> {
+interface Page extends Layout<PageProps> {
     id: string
     children: Reactive<Array<AllNode>>
 
@@ -7,4 +7,8 @@ interface Page extends Layout<PageList> {
     update(id: string, node: AllNode): boolean
     find(id: string): AllNode
     select(id: string): LeafNode
+}
+
+type PageProps = {
+    fatherNode: PageList
 }

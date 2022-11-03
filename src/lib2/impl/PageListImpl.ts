@@ -29,7 +29,8 @@ export default class PageListImpl implements PageList {
 
     getLayout(): VNode {
         return MyVue.h('div', {
-            class: 'vue-typesetting'
+            class: 'vue-typesetting',
+            draggable: false
         }, this.children.map((page: Page) => page.getLayout()))
     }
 

@@ -44,7 +44,8 @@ export default class PageImpl implements Page {
                 }
             }
         }, this.children.map((node: AllNode) => node.getLayout({
-            fatherNode: this
+            fatherNode: this,
+            flex: 1
         })))
     }
 }

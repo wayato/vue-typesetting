@@ -1,4 +1,4 @@
-interface FloatLeafNode extends Layout<Page> {
+interface FloatLeafNode extends Layout<FloatLeafNodeProps> {
     id: string
     compId: string
     left: number | string
@@ -6,4 +6,8 @@ interface FloatLeafNode extends Layout<Page> {
     width: number | string
     height: number | string
     zIndex: number
+}
+
+type FloatLeafNodeProps = {
+    fatherNode: Page
 }

@@ -18,12 +18,15 @@ export default class DivideLeafNodeImpl implements DivideLeafNode {
         this.compId = ComponentDesp.add(vueComp)
     }
     
-    getLayout(props: { fatherNode: Page | DivideContainerNode }): VNode {
+    getLayout(props: DivideLeafNodeProps): VNode {
         const comp: Component = ComponentDesp.find(this.compId)
         return MyVue.h('div', {
             class: {
                 'vue-typesetting__divide-leaf': true,
                 'vue-typesetting__divide-leaf__selected': ComponentDesp.currentId.value === comp.id
+            },
+            style: {
+                flex: props.flex || 1
             },
             on: {
                 click: () => {
@@ -38,7 +41,7 @@ export default class DivideLeafNodeImpl implements DivideLeafNode {
         ])
     }
 
-    getOperAreaLayout(props: { fatherNode: Page | DivideContainerNode }): VNode[] {
+    getOperAreaLayout(props: DivideLeafNodeProps): VNode[] {
         type Area = {
             feelArea: string
             tipArea: string
@@ -59,7 +62,7 @@ export default class DivideLeafNodeImpl implements DivideLeafNode {
             {
                 feelArea: '0 0, 50% 50%, 0 100%',
                 tipArea: '0 0, 50% 0, 50% 100%, 0 100%'
-            },
+            }
         ]
         return OPER_AREA.map((item: Area, index: number) => [
             MyVue.h('div', {

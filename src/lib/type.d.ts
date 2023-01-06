@@ -4,7 +4,11 @@ type PageBaseConfig = {
     watermark: string // 水印
     leftMargin: string // 左边距
     rightMargin: string // 右边距
+    topMargin: string // 上边距
+    bottomMargin: string // 下边距
     fontFamily: string // 全局字体
+    headerFlexes: [number, number, number] // 页眉3块区域的占比
+    footerFlexes: [number, number, number] // 页脚3块区域的占比
 }
 
 // 可能需要展示在某处的信息

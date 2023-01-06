@@ -34,6 +34,10 @@ export default Vue.component('typesetting-header-footer', {
         },
         scale: {
             type: Number
+        },
+        flexes: {
+            type: Array,
+            default: () => [1, 1, 1]
         }
     },
     render(h) {
@@ -48,13 +52,13 @@ export default Vue.component('typesetting-header-footer', {
                 borderColor: (this.global.preview || this.disabled) ? 'transparent' : '#E6E6FF',
                 transition: 'borderColor .3s'
             }
-        }, new Array(3).fill(null).map((_, index: number) => {
+        }, this.flexes.map((flex: number, index: number) => {
             return h('div', {
                 class: {
                     'vue-typesetting__header-footer--content': !this.disabled
                 },
                 style: {
-                    flex: 1,
+                    flex,
                     width: 0,
                     position: 'relative',
                     borderRight: `${1.5 / this.scale}px dashed #E6E6FF`,

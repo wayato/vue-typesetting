@@ -66,6 +66,11 @@ export default class Typesetting {
         this.state.global.preview = preview
     }
 
+    // 设置注入
+    public setProvide(provide: any = false) {
+        this.state.provide = provide
+    }
+
     // 监听事件
     public listenerEvents: Map<string, Function> = new Map()
     public addEventListener(eventName: string, callback: Function) {
@@ -120,7 +125,8 @@ export default class Typesetting {
             addDraging: false, // 是否正在新增拖拽
             updateDraging: false, // 是否正在更新拖拽
             isInner: true // 鼠标是否是处于编辑区域
-        }
+        },
+        provide: null
     })
     // 渲染函数
     public render($el: HTMLElement) {
@@ -128,6 +134,7 @@ export default class Typesetting {
         const that = this
         const state = that.state
         const component = Vue.extend({
+            provide: state.provide,
             render(h: CreateElement): VNode {
                 return h('div', {
                     class: {

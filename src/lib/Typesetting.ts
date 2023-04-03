@@ -8,8 +8,14 @@ import Leaf from './Leaf'
 import DragImg from './DragImg'
 import HeaderFooter from './HeaderFooter'
 import Watermark from './Watermark'
+import Permission, { PermissionProps } from './Permission'
 
 export default class Typesetting {
+    private permission: Permission = new Permission()
+
+    public setPermission(props: PermissionProps) {
+        this.permission.setProps(props)
+    }
 
     // 设置拖拽数据
     public setDragData(e: DragEvent, data: any) {
@@ -189,7 +195,7 @@ export default class Typesetting {
                             comp: state.headerFooterConfig.comp,
                             height: state.headerFooterConfig.height[0] || 0,
                             flexes: state.pageBaseConfig.headerFlexes,
-                            disabled: state.headerFooterConfig.disabled || false,
+                            disabled: !that.permission.header,
                             changeKey: that.changeKey.bind(that),
                             config: state.headerFooterConfig.props[0],
                             global: state.global,
@@ -202,6 +208,7 @@ export default class Typesetting {
                             flex: 1,
                             display: 'flex',
                             fontFamily: state.pageBaseConfig?.fontFamily || '微软雅黑',
+                            pointerEvents: that.permission.comp ? 'auto' : 'none'
                         }
                     }, state.dataAST.length === 0
                     ? [
@@ -291,7 +298,7 @@ export default class Typesetting {
                             comp: state.headerFooterConfig.comp,
                             height: state.headerFooterConfig.height[1] || 0,
                             flexes: state.pageBaseConfig.footerFlexes,
-                            disabled: state.headerFooterConfig.disabled || false,
+                            disabled: !that.permission.footer,
                             changeKey: that.changeKey.bind(that),
                             config: state.headerFooterConfig.props[1],
                             global: state.global,

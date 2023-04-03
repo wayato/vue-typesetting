@@ -20,7 +20,6 @@ type PageInfo = {
 // 页眉页脚配置
 type HeaderFooterConfig = {
     comp: string // 组件名称
-    disabled: boolean // 是否禁用操作
     height: [string, string] // 页眉、页脚分别高度
     props: [object[], object[]] // 页眉、页脚分别传入的props
 }

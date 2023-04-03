@@ -51,7 +51,7 @@ export default class MyVue {
             } else {
                 return vue.reactive<T>({
                     value: target
-                } as any) // 这里不是很懂为什么要any才不报错
+                } as T)
             }
         }
     }

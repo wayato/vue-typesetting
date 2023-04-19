@@ -61,7 +61,7 @@ export default Vue.component('typesetting-header-footer', {
                     flex,
                     width: 0,
                     position: 'relative',
-                    borderRight: `${1.5 / this.scale}px dashed #E6E6FF`,
+                    borderRight: (this.global.preview || this.disabled) ? 0 : `${1.5 / this.scale}px dashed #E6E6FF`,
                     borderColor: (this.global.preview || this.disabled) ? 'transparent' : '#E6E6FF',
                     transition: 'borderColor .3s'
                 },
